@@ -64,21 +64,12 @@ xxxApplication class 패키지경로 하위의 bean만 등록이 가능하다.
 
 bean을 등록할 때 첫번째로 @ComponetScan에 의해 등록된다. 어떠한 class에 @Component 어노테이션을 달아놓았다면 그 class가 bean에 등록이 된다.
 		 		두번째로 @EnableAutoConfiguration에 의해 등록된다. 스프링 부트의 자동 설정은 추가한 jar 의존성을 기반으로 Spring 애플리케이션을 자동으로 설정하려고 시도한다.
+                 
 
-        <dependency>
-	        <groupId>org.springframework.boot</groupId>
-	        <artifactId>spring-boot-starter</artifactId>   - 의존체 추가 : 스타터 폼 
-        </dependency>
+내장 웹 서버 이해 
+------------------
 
-        <parent></parent> : spring boot 상위 의존체 
-
-
-
-====================================================================================================================================================================
-
-- 내장 웹 서버 이해 
-
-	- 스프링부트는 서버가 아니다.
+- 스프링부트는 서버가 아니다.
 	- Tomcat 객체를 생성하는법 : Tomcat tomcat = new Tomcat(); 
 	- 포트 설정하기 : 자바코드로 작성 - tomcat.setPort(8090); , application.properties, yml에 작성해도 된다.
 	 	port 를 0으로 설정하게되면 랜덤포트를 사용한다.
@@ -92,7 +83,8 @@ bean을 등록할 때 첫번째로 @ComponetScan에 의해 등록된다. 어떠�
 					 } 
 		얻을 수 있다.
 
-	- 간단한 설정만으로 tomcat 대신 다른 was를 사용 가능하다.
+- 간단한 설정만으로 tomcat 대신 다른 was를 사용 가능하다.
+````
 	<dependency>
 
 		<groupId>org.springframework.boot</groupId>
@@ -111,6 +103,7 @@ bean을 등록할 때 첫번째로 @ComponetScan에 의해 등록된다. 어떠�
 		<groupId>org.springframework.boot</groupId> 			이런방식으로 Jetty Server 이외에 Server도 의존성을 추가해주면 사용 가능하다.
 		<artifactId>spring-boot-starter-jetty</artifactId>
 	</dependency>
+````
 
 - SSL,HTTPS
 	HTTP는 Hypertext Transfer Protocol의 약자이며, HTTPS 에서 S 는 Over Secure Socket Layer의 약자이다. 
