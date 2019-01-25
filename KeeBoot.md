@@ -72,12 +72,12 @@ annotation
 내장 웹 서버 이해 
 ------------------
 
-##스프링부트는 서버가 아니다.
+### 스프링부트는 서버가 아니다.
 - Tomcat 객체를 생성하는법 : Tomcat tomcat = new Tomcat(); 
 - 포트 설정하기 : 자바코드로 작성 - tomcat.setPort(8090); , application.properties, yml에 작성해도 된다.
 - port 를 0으로 설정하게되면 랜덤포트를 사용한다.
 
-##Port값 얻기    
+### Port값 얻기    
 - ApplicationListener<ServletWebServerInitializedEvent> interface를 상속받아 얻을 수 있다.
 
 ```java
@@ -89,7 +89,7 @@ public void onApplicationEvent(ServletWebServerInitializedEvent event) {
 } 
 ```
 
-##간단한 설정만으로 tomcat 대신 다른 was를 사용 가능하다.
+### 간단한 설정만으로 tomcat 대신 다른 was를 사용 가능하다.
 
 ```java
 <dependency>
@@ -111,7 +111,7 @@ public void onApplicationEvent(ServletWebServerInitializedEvent event) {
 </dependency>
 ```
 
-##SSL,HTTPS
+### SSL,HTTPS
 - HTTP는 Hypertext Transfer Protocol의 약자이며, HTTPS 에서 S 는 Over Secure Socket Layer의 약자이다. 
 - HTTPS는 HTTP보다 보안이 강화된 HTTP이다. 
 - HTTP 단점 
@@ -119,13 +119,13 @@ public void onApplicationEvent(ServletWebServerInitializedEvent event) {
 - 통신 상대를 확인하지 않기 때문에 위장이 가능하다 완전성을 증명할 수 없기 때문에 변조가 가능하다.
 - HTTPS는 직접 TCP와 통신하지않고 SSL과 통신을 하게된다. SSL을 사용함으로써 암호화,증명서,완전성 보호를 이용할 수 있게된다.
 
-##SSL 
+### SSL 
 - SSH인증서는 클라이언트와 서버간의 통신을 제3자가 보증해주는 전자화된 문서다.
 - 통신 내용이 공격자에게 노출되는 것을 막을 수 있다. 
 - 클라이언트가 접속하려는 서버가 신뢰 할 수 있는 서버인지를 판단할 수 있다.
 - 통신 내용의 악의적인 변경을 방지할 수 있다.
 
-##SSH 인증서 생성 
+### SSH 인증서 생성 
 - Spring Boot SSL key generate L 명령어 수행한 위치에 키스토어가 생성된다. 
 - $ keytool -genkey -alias tomcat -storetype PKCS12 -keyalg RSA -keysize 2048 -keystore keystore.p12 -validity 4000
 
@@ -161,7 +161,7 @@ private Connector createStandardConnector() {
 - HTTP2 설정은 SSL이 기본적으로 적용되어있는 상태에서 server.http2.enabled=를 true로 할당해주면 된다.
 - 추가적으로 해줘야하는 작업은 각 웹서버마다 다르다 (undertow는 https 설정이 되어있으면 추가적인 설정 없이 http2 enable만 true로 할당하면되고, tomcat은 9.X버전과 JDK9 이상을 쓰면 추가적인 설정없이 http2를 적용할 수 있다.)
 
-## 독립적으로 실행 가능한 JAR 
+### 독립적으로 실행 가능한 JAR 
 - mvn package 를 하면 실행 가능한 JAR 파일 하나가 생성된다. 
 - spring-maven-plugin이 해주는 일이다. (패키징)
 
@@ -186,7 +186,7 @@ private Connector createStandardConnector() {
 SpringApplication 
 -----------------
 	
-##SpringApplication Custom
+### SpringApplication Custom
 
 - SpringApplication.run(Application.class, args); // 1
 - SpringApplication app = new SpringApplication(Application.class, args); // 2
@@ -199,16 +199,16 @@ new SpringApplicationBuilder()
 - 1번과 같이 스태틱메소드를 이용해서 앱을 실행하면 커스터마이징을 할 수가 없다. 
 - 배너를 수정하는 것처럼 커스터마이징이 필요하다면 2, 3번과 같이 `직접` 애플리케이션을 생성하거나 빌더를 이용한 방법을 사용해야 한다.	
 
-##기본 로그레벨은 INFO
+### 기본 로그레벨은 INFO
 - 변경법
 Eclips를 사용하는 경우 상단탭 Run - Configuarations
 Program arguments : --debug 
 VM 				  : -Ddebug  라고 설정해주면 로그레벨이 DEBUG로 설정된다.
 
-##FailureAnalyzer  
+### FailureAnalyzer  
 에러가 발생했을 때, 에러 로그를 보기좋게 출력해준다. 
 
-##ApplicationEvent 등록
+### ApplicationEvent 등록
 - ApplicationConText를 만들기 전에 사용하는 리스너는 @Bean으로 등록할 수 없다. 
 - Context는 모든 bean의 정보를 가지고 있다. 
 - 스프링부트에서 기본적으로 제공해주는 이벤트가 존재한다. 앱시작,앱컨텍스트를 만들었을 때, refresh 됬을 때, 구동이 됬을 때 등등 
@@ -284,7 +284,7 @@ public class Application {
 - ApplicationStartedEvent 이벤트는 컨텍스트 생성 로그가 먼저 출력되고 Started 로그가 출력되면서 SampleListener가 실행된다.
 
 
-##WebApplicationType 설정
+### WebApplicationType 설정
 - org.springframework.boot.WebApplicationType 열거형 클래스에는 3가지의 타입이 존재한다. 
 - SpringApplication의 setWebApplicationType메소드로 앱 타입을 지정할 수 있다. 
 - `ServletWebMvc`나 `SpringMvc`가 설정되어있으면 `WebApplicationType.SERVLET`으로 설정된다. 
@@ -293,7 +293,7 @@ public class Application {
 - SpringMvc와 SpringWebFlux가 `모두` 들어있다면 `WebApplicationType.SERVLET`으로 설정된다. 
 - 가장 먼저 서블릿의 존재를 체크하기 때문에 WebFlux가 들어있어도 무시된다.
 
-##Application Argument 사용하기
+### Application Argument 사용하기
 - Application Argument -> -- 
 - VM Argument          -> -D 
 
@@ -308,8 +308,10 @@ public class SampleListener  {
 ```
 - ApplicationArguments를 이용해 애플리케이션에 전달된 인자를 사용한다.
 
-##애플리케이션 실핸한 뒤 뭔가 실행하고 싶을 때 
-###ApplicationRunner
+애플리케이션 실핸한 뒤 뭔가 실행하고 싶을 때 
+-----------------------------------------
+
+### ApplicationRunner
 ```java
 @Component
 public class SampleListener implements ApplicationRunner {
@@ -323,7 +325,7 @@ public class SampleListener implements ApplicationRunner {
 - 애플리케이션이 실행된 후에 특정 작업을 수행하기 위해서는 ApplicationRunner을 구현한 빈을 등록해야한다. 
 - run 메소드의 인자는 ApplicationArguments가 전달되며 애플리케이션에 전달된 인자에 접근할 수 있다.
 
-###CommandLineRunner
+### CommandLineRunner
 ```java
 @Component
 public class SampleListener implements CommandLineRunner {
@@ -342,43 +344,43 @@ public class SampleListener implements CommandLineRunner {
 외부설정
 -------
 
-##프로퍼티 우선 순위 
+### 프로퍼티 우선 순위 
 
-1.유저 홈 디렉토리에 있는 spring-boot-dev-tools.properties
+1. 유저 홈 디렉토리에 있는 spring-boot-dev-tools.properties
 
-2.테스트에 있는 @TestPropertySource
+2. 테스트에 있는 @TestPropertySource
 
-3.@SpringBootTest 애노테이션의 properties 애트리뷰트
+3. @SpringBootTest 애노테이션의 properties 애트리뷰트
 
-4.커맨드라인 아규먼트
+4. 커맨드라인 아규먼트
 
-5.SPRING_APPLICATION_JSON (환경 변수 또는 시스템 프로퍼티)에 들어있는 프로퍼티
+5. SPRING_APPLICATION_JSON (환경 변수 또는 시스템 프로퍼티)에 들어있는 프로퍼티
 
-6.ServletConfig 파라미터
+6. ServletConfig 파라미터
 
-7.ServletContext 파라미터
+7. ServletContext 파라미터
 
-8.Java:comp/env JNDI 애트리뷰트
+8. Java:comp/env JNDI 애트리뷰트
 
-9.System.getProperties() 자바 시스템 프로퍼티
+9. System.getProperties() 자바 시스템 프로퍼티
 
-10.OS 환경 변수
+10. OS 환경 변수
 
-11.RandomValuePropertySource
+11. RandomValuePropertySource
 
-12.JAR 밖에 있는 특정 프로파일용 application.properties
+12. JAR 밖에 있는 특정 프로파일용 application.properties
 
-13.JAR 안에 있는 특정 프로파일용 application.properties
+13. JAR 안에 있는 특정 프로파일용 application.properties
 
-14.JAR 밖에 있는 application.properties
+14. JAR 밖에 있는 application.properties
 
-15.JAR 안에 있는 application.properties
+15. JAR 안에 있는 application.properties
 
-16.@PropertySource
+16. @PropertySource
 
-18.기본 프로퍼티(SpringApplication.setDefaultProperties)
+18. 기본 프로퍼티(SpringApplication.setDefaultProperties)
 
-###application.properties 우선 순위(높은게 낮은걸 덮어 쓴다.)
+### application.properties 우선 순위(높은게 낮은걸 덮어 쓴다.)
 
 1. file:./config/
 
@@ -388,9 +390,105 @@ public class SampleListener implements CommandLineRunner {
 
 4. classpath:/
 
+### properties에서 랜덤값 설정하기
+- ${random.자료형}
+- server.port의 경우 0을 할당해야 가용범위 안의 포트를 찾아서 맵핑해줌
 
+### 타입-세이프 프로퍼티 @ConfigurationProperties
+- 여러 프로퍼티를 묶어서 읽어올 수 있다.
+- 빈으로 등록해서 다른 빈에 주입할 수 있다.
+    - @EnableConfigurationProperties
+    - @Component 
+    - @Bean
+    - 스프링부트 애플리케이션에서는 @EnableConfigurationProperties가 등록이 되어 있으므로 @ConfigurationProperties가 선언되어있는 클래스에 @Component를 추가하여 빈으로 만들어 주기만 하면 된다.
+    - (최상단 annotation 설명 부분에 @EnableConfigurationProperties, @ConfigurationProperties 설명 되어있음.)
 
+```java
+@Component
+@ConfigurationProperties("tester")
+public class testerProperties {
+    String name;  //tester.name 매칭
+    int age;      //tester.age  매칭
+    ... //getter, setter 생성 --BEAN 규칙에 따른다
+}
+```
 
+- @Value와의 차이 
 
+1. type safe하지 않다.
+    - @Value의 value에 오타를 칠 수도 있다.
+    - 하지만 getter 메소드를 사용함으로써 type safe할 수 있다.
 
+2. Meta-data 지원 여부
+    - 위에서 봤듯이 @ConfigurationProperties은 메타데이터를 지원함으로써
+    - application.properties(or yml)생성시 자동완성을 지원한다.
+
+3. Relaxed binding(융통성 있는 바인딩) 지원 여부
+
+    - 스프링 부트는 @ConfigurationProperties 빈에 `Environment프로퍼티`를 바인딩 할때 융통성 있는(Relaxed) 규칙을 적용해서
+    - Environment프로퍼티 이름과 Bean 프로퍼티 이름이 완벽하게 같지 않아도 된다.
+    - 대소문자 차이(ex : PORT vs port)
+    - dash(-)구분, (ex : context-path vs contextPath)등을 알아서 구분한다.
+    - 다음 4가지는 모두 동일하게 정상 작동하게 된다.
+
+    - context-path : kebab-case (properties,yml에서 사용권장)
+    - context_path : Underscore notation (properties,yml의 다른 포맷)
+    - contextPath : Standard Camel case
+    - CONTEXTPATH : Upper case (시스템 환경 변수에서 권장되는)
+        (@Value는 이걸 지원하지 않는다.)
+
+4. SpEL 지원 여부
+`@ConfigurationProperties`는 SpEL을 지원하지 않는다.
+`@Value`가 SpEL 표현을 지원하지만 프로퍼티 파일에서는 처리되지 않음을 명심하자.
+
+### 프로퍼티 타입 컨버전 
+- @Duration
+- properties에서는 DataType을 적어주진 않지만 컨버전에 의해 잘 매핑된다.
+- 스프링 부트에는 이외에도 스프링 부트만이 제공하는 독특한 컨버전이 존재하는데 그 중 하나가 duration이다.
+- java.time.Duration의 Duration 클래스는 자바 8부터 존재하며 특정시간A와 특정시간 B 사이의 시간 차이를 초나 nano초의 시간의 양으로 모델링 한다.
+
+```java
+@Component
+@ConfigurationProperties("tester")
+public class TesterProperties {
+
+//   내용 스킵
+
+    @DurationUnit(ChronoUnit.SECONDS)
+    private Duration ssessionTimeout = Duration.ofSeconds(30);
+}
+```
+- 이렇게 하면 properties에 ssessionTimeout이 없으면 기본값 30s를 가지게 되며 ssessionTimeout가 있으면 그값으로 주입이 된다.
+
+### 프로퍼티 값 검증 
+- @Validated
+- @ConfigurationProperties 클래스들이 스프링의 @Validated어노테이션이 붙으면 스프링 부트가 데이터 검증(validate)을 시도한다.
+- @NotEmpty 어노테이션을 달아놓으면 null값을 체크해준다. 
+
+```java
+@Component
+@Validated
+@ConfigurationProperties("tester")
+public class TesterProperties {
+    @Size(min = 3, max = 15) ///이름 3~15크기
+    private String name;
+```
+- 값을 properties에 다르게 세팅한 후 
+
+2018-10-31 15:04:48.380 ERROR 26696 --- [main] o.s.b.d.LoggingFailureAnalysisReporter   :
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Binding to target org.springframework.boot.context.properties.bind.BindException: Failed to bind properties under 'tester' to me.rkaehdaos.TesterProperties failed:
+
+    Property: tester.name
+    Value: G
+    Origin: class path resource [application.properties]:1:13
+    Reason: 반드시 최소값 3과(와) 최대값 15 사이의 크기이어야 합니다.
+
+이와같은 에러메세지가 나오는데 FailureAnalyzer 덕분에 이쁘게 나온다. 
 
