@@ -161,7 +161,7 @@ private Connector createStandardConnector() {
 - HTTP2 설정은 SSL이 기본적으로 적용되어있는 상태에서 server.http2.enabled=를 true로 할당해주면 된다.
 - 추가적으로 해줘야하는 작업은 각 웹서버마다 다르다 (undertow는 https 설정이 되어있으면 추가적인 설정 없이 http2 enable만 true로 할당하면되고, tomcat은 9.X버전과 JDK9 이상을 쓰면 추가적인 설정없이 http2를 적용할 수 있다.)
 
-##독립적으로 실행 가능한 JAR 
+## 독립적으로 실행 가능한 JAR 
 - mvn package 를 하면 실행 가능한 JAR 파일 하나가 생성된다. 
 - spring-maven-plugin이 해주는 일이다. (패키징)
 
