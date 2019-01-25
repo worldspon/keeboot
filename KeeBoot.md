@@ -1,60 +1,59 @@
 Spring Boot 정리 
 ================
 
-<hr/>
 
 annotation 
 ----------
 
-	- @SpringBootApplication  
-        - (@EnableAutoConfiguration + @Configuaration + @ComponentScan) 이다.
-	    - 암시적으로 특정 항목에 대한 기본 검색 패키지를 정의한다.
-	    - 예를 들어 JPA응용 프로그램을 작성하는 경우 @SpringBootApplication 어노테이션이 달린 클래스의 패키지를 사용하여 @Entity 항목을 검색한다.
+- @SpringBootApplication  
+    - (@EnableAutoConfiguration + @Configuaration + @ComponentScan) 이다.
+    - 암시적으로 특정 항목에 대한 기본 검색 패키지를 정의한다.
+    - 예를 들어 JPA응용 프로그램을 작성하는 경우 @SpringBootApplication 어노테이션이 달린 클래스의 패키지를 사용하여 @Entity 항목을 검색한다.
 
-	- @ComponentScan, @EntityScan, @SpringBootApplication은 모든 jar에서 모든 class를 읽기 때문에 class를 선언할 때 패키지 선언을 해주어야 한다.
+- @ComponentScan, @EntityScan, @SpringBootApplication은 모든 jar에서 모든 class를 읽기 때문에 class를 선언할 때 패키지 선언을 해주어야 한다.
 
-	- @Configuration 
-        - 설정을 위한 어노테이션으로 개발자가 생성한 class를 Bean으로 생성할 때 Single Tone으로 한번만 생성한다.
-		- Single Tone이란 한번만 생성하여 계속해서 재사용하는 것. 매번 사용할때마다 다른객체를 사용하게되는 비효율적인 측면을 방지할 수 있다.
+- @Configuration 
+    - 설정을 위한 어노테이션으로 개발자가 생성한 class를 Bean으로 생성할 때 Single Tone으로 한번만 생성한다.
+    - Single Tone이란 한번만 생성하여 계속해서 재사용하는 것. 매번 사용할때마다 다른객체를 사용하게되는 비효율적인 측면을 방지할 수 있다.
 
-	- @Component  
-        - Bean을 생성할 때 사용하는 어노테이션이다. java class를 Spring Bean이라고 표시하는 역할을 한다. 
-	- @ComponentScan  
-        - @Component, @Configuaration, @Repository, @Service, @Controller, @RestController 어노테이션이 붙은 class를 Bean객체로 만들어준다. 
+- @Component  
+    - Bean을 생성할 때 사용하는 어노테이션이다. java class를 Spring Bean이라고 표시하는 역할을 한다. 
+- @ComponentScan  
+    - @Component, @Configuaration, @Repository, @Service, @Controller, @RestController 어노테이션이 붙은 class를 Bean객체로 만들어준다. 
 
-	- @EnableAutoConriguration 
+- @EnableAutoConriguration 
 
-	    - 필요한 bean을 유추해서 구성해주는 Class이다. 자동구성 Class는 ClassPath및 앱에 정의한 Bean에 따라 적용 여부가 결정된다. 
+    - 필요한 bean을 유추해서 구성해주는 Class이다. 자동구성 Class는 ClassPath및 앱에 정의한 Bean에 따라 적용 여부가 결정된다. 
 
-		- 구성할 클래스를 모두 찾아주는 org.springframework.boot.autoconfigure.AutoConfigurationImportSelector Class 중에서 getCandidateConfigurations()는 실제로 자동 구성을 유발하며, 
-		- org.springframework.core.io.support.SpringFactoriesLoader Class의 loadFactoryNames() 는 spring-boot-autoconfigure Jar에 있는 META-INF/spring.factories 파일에 프로퍼티 형식으로 열거된 구성 클래스를 읽어들여 List<String> 타입으로 반환한다. 
-		- 설정파일에 이름을 따서 명명된 속성들을 찾는것.
-		
-		- spring boot가 앱 타입을 유추할 때 사용할 자동 구성 클래스를 모두 spring.factories파일에 몰아 넣는다.
+    - 구성할 클래스를 모두 찾아주는 org.springframework.boot.autoconfigure.AutoConfigurationImportSelector Class 중에서 getCandidateConfigurations()는 실제로 자동 구성을 유발하며, 
+    - org.springframework.core.io.support.SpringFactoriesLoader Class의 loadFactoryNames() 는 spring-boot-autoconfigure Jar에 있는 META-INF/spring.factories 파일에 프로퍼티 형식으로 열거된 구성 클래스를 읽어들여 List<String> 타입으로 반환한다. 
+    - 설정파일에 이름을 따서 명명된 속성들을 찾는것.
+    
+    - spring boot가 앱 타입을 유추할 때 사용할 자동 구성 클래스를 모두 spring.factories파일에 몰아 넣는다.
 
-		- @Configuaration, @Conditionalxxx 어노테이션이 달린 설정파일이나 설정파일의 조건을 읽어서 자동설정을 하게된다. 
-	
-	- @Conditional  
-        - 구성을 활성화 시키기위한 조건을 걸어둘 수 있다. @Configuaration Class가 특정 Class의 유무에 따라 포함되도록 한다
+    - @Configuaration, @Conditionalxxx 어노테이션이 달린 설정파일이나 설정파일의 조건을 읽어서 자동설정을 하게된다. 
 
-	- @ConditionOnMissingBean : Bean이 존재하지 않을 때 활성화 한다. 덮어쓰기를 방지한다.
-		ex) @ConditionalOnMissingBean(name = "helloConfigSample") 	
-			helloConfigSample 존재 하지 않을때 실행하라.
+- @Conditional  
+    - 구성을 활성화 시키기위한 조건을 걸어둘 수 있다. @Configuaration Class가 특정 Class의 유무에 따라 포함되도록 한다
 
-	@ConditionOnBean : Bean이 존재할 때 실행하는 어노테이션.
+- @ConditionOnMissingBean : Bean이 존재하지 않을 때 활성화 한다. 덮어쓰기를 방지한다.
+    ex) @ConditionalOnMissingBean(name = "helloConfigSample") 	
+        helloConfigSample 존재 하지 않을때 실행하라.
 
-	@ConditionalOnProperty : prefix 속성에 해당되는 프로퍼티 값이 있으면 실행한다.
+@ConditionOnBean : Bean이 존재할 때 실행하는 어노테이션.
 
-	@ConfigurationProperties(prefix = "example") : properties파일의 데이터를 해당 prefix 설정값으로 
+@ConditionalOnProperty : prefix 속성에 해당되는 프로퍼티 값이 있으면 실행한다.
 
-	@EnableConfigurationProperties : 위 ConditionalOnProperty,ConfigurationProperties Class 등과 함께 사용되는 어노테이션이다. 
-	프로퍼티의(예를 들어) autoconfig.sample.id 가 있다면 id 값을 저장 해놓기 위한 class가 필요 하다. 그용도로 사용한다.
-	EnableConfigurationProperties 만 있어도 사용은 가능하지만 프로퍼티의 autoconfig.sample.id 설정하지 않았다면 null 로 나온다. 만약 사용한다면 위와같은 방식으로 사용하길 권장한다.
-	예) @EnableConfigurationProperties(SampleProperties.class)
+@ConfigurationProperties(prefix = "example") : properties파일의 데이터를 해당 prefix 설정값으로 
 
-	@ConditionOnClass : 하나 또는 여러 개의 Class가 Class 경로에 있는 경우에만 구성을 활성화 한다.
-	
-	등등 조건을 위한 Conditional 어노테이션은 많음. 참조 http://wonwoo.ml/index.php/post/20
+@EnableConfigurationProperties : 위 ConditionalOnProperty,ConfigurationProperties Class 등과 함께 사용되는 어노테이션이다. 
+프로퍼티의(예를 들어) autoconfig.sample.id 가 있다면 id 값을 저장 해놓기 위한 class가 필요 하다. 그용도로 사용한다.
+EnableConfigurationProperties 만 있어도 사용은 가능하지만 프로퍼티의 autoconfig.sample.id 설정하지 않았다면 null 로 나온다. 만약 사용한다면 위와같은 방식으로 사용하길 권장한다.
+예) @EnableConfigurationProperties(SampleProperties.class)
+
+@ConditionOnClass : 하나 또는 여러 개의 Class가 Class 경로에 있는 경우에만 구성을 활성화 한다.
+
+등등 조건을 위한 Conditional 어노테이션은 많음. 참조 http://wonwoo.ml/index.php/post/20
 	
 
 xxxApplication.java 부터 Component scan이 진행되기 때문에  
