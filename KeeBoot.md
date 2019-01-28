@@ -492,3 +492,208 @@ Binding to target org.springframework.boot.context.properties.bind.BindException
 
 이와같은 에러메세지가 나오는데 FailureAnalyzer 덕분에 이쁘게 나온다. 
 
+로깅
+----
+
+### 로깅 파사드
+    - Commons Logging (Spring은 Commons Logging을 사용함)
+    - SLF4j
+    - 로깅 파사드는 실제 로깅을 하지 않고, 로거 API들을 추상화 해놓은 인터페이스들이다.
+    - 로깅파사드의 장점은 로거들을 바꿔서 사용할 수 있다는 것이다. 
+
+### 로거
+    - JUL(Java Utility Logging)
+    - Log4j2
+    - Logback
+
+- 스프링부트에서 찍히는 로그는 Commons Logging -> SLF4j2 -> Logback의 흐름을 타고 결국은 Logback이 로그를 찍는다. 
+- spring-boot-starter-logging 의존성을 통해 알 수 있다. 
+
+### 스프링부트 기본 로깅 
+- --debug : 일부 코어 라이브러리(embedded container, Hibernate, Spring Boot)만 디버깅 모드로
+- --trace : 전부 다 디 버깅 모드로
+- 컬러 출력 : spring.output.ansi.enabled=always
+- 파일 출력 : 
+    - logging.file 또는 logging.path
+    - 로그파일은 기본적으로 10M까지 저장되고, 넘치면 아카이빙하는 등 여러가지 설정도 할 수 있다.
+- 로그 레벨 조정 
+    - logging.level.패키지 = 로그 레벨
+
+### 커스텀 로깅 
+- 커스텀 로그 설정 파일 사용하기
+
+- Logback: logback-spring.xml
+    - https://docs.spring.io/spring-boot/docs/current/reference/html/howto-logging.html#howto-configure-logback-for-logging
+
+- Log4J2: log4j2-spring.xml
+- JUL(비추천): logging.properties
+- Logback extension
+- logback-spring.xml을 사용하면 logback.xml을 사용하는 것과 같고, 스프링부트에서 추가로 아래의 익스텐션을 사용할 수 있게 제공한다.
+
+
+```java
+프로파일 <springProfile name="프로파일">
+
+Environment 프로퍼티<springProperty>
+```
+
+- 로거를 Log4j2로 변경하기
+    - https://docs.spring.io/spring-boot/docs/current/reference/html/howto-logging.html#howto-configure-log4j-for-logging
+
+
+테스트
+------
+
+- spring-boot-starter-test 의존성을 추가해준다. 
+
+### @springBootTest
+- @RunWith(SpringRunner.class)와 같이 써야함.
+- 빈 설정은 안해주어도 된다. 알아서 @SpringBootApplication을 찾는다.
+- webEnvironment 
+    - MOCK : WebApplicationContext를 제공하고 가짜 서블릿 환경을 제공함
+    - RANDOM_PORT, DEFINED_PORT : ServletWebServerApplicationContext를 로드하고 진짜 서블릿 환경을 제공함. 내장된 서블릿 컨테이너를 구동하고 random port로 리스닝 한다.
+    - NONE : SpringApplication 을 사용하면서 ApplicationContext 이 로드된다. 그러나 서블릿 환경은 제공되지 않는다.
+
+### MockBean 
+- ApplicationContext에 들어있는 빈을 Mock으로 만든 객체로 교환한다.
+
+    - ex)  
+    ```java
+    @MockBean
+    private UserController userController;
+    ```
+    UserController class를 대신하여 Mock객체로 교체한다. 
+    
+- 모든 @Test 마다 자동으로 리셋.
+
+### 슬라이스 테스트 
+- @DataJpaTest  
+    - SpringBoot에서 JPA만 테스트할 수 있도록 제공하는 어노테이션 
+    - 단위 테스트가 끝날때 마다 자동으로 DB를 롤백시켜준다.
+
+- @WebMvcTest 
+    - Controller를 위한 테스트 어노테이션이다. 
+    - MockMvc를 자동으로 지원하고 있어 별도의 HTTP서버 없이 Controller테스트를 진행할 수 잇다. 
+
+- @JsonTest
+    - 편하게 JSON serialization과 deserialization을 테스트할 수 있다. 
+
+- @RestClientTest
+    - 자신이 서버 입장이 아니라 클라이언트 입장이 되는 코드를 테스트할때 유용하다.
+    - Apache HttpClient나 Spring의 RestTemplate을 사용하여 외부 서버에 웹 요청을 보내는 경우가 있습니다. 
+    - @RestClientTest는 요청에 반응하는 가상의 Mock 서버를 만든다고 생각하면 됩니다.
+
+- @OutputCapture 
+    - System.out, System.err 를 출력하는데 사용할 수 있다. 
+    - @Rule 어노테이션을 사용하여 OutputCapture 객체를 생성한 후 toString()을 사용하여 출력 가능하다. 
+
+스프링 웹 MVC 
+-------------
+
+### HttpMessageConverters
+
+- HTTP 요청 본문을 객체로 변경하거나, 객체를 HTTP응답 본문으로 변경할 때 사용한다.
+- @RequestBody
+- @ResponseBody
+    - @RestController를 사용하게 되면 자동으로 적용된다. 
+
+- Srping MVC는 Http request와 response를 변환하기 위해 HttpMessageConverter 인터페이스를 사용한다.
+- 일반적으로 spring framework에서는 Spring MVC를 이용해서 컨트롤러에 값을 주고 받을 때는 HTTP 요청 프로퍼티를 분석하여 그에 따라 특정 클래스로 바인딩 되게끔 하고 특정 객체를 Model Object에 집어 넣어 View를 리턴하는 식으로 주고받게 된다.
+- 그러나 메세지 컨버터는 그런 개념이 아니라 HTTP 요청 메세지 본문과 HTTP 응답 메세지 본문을 통째로 하나의 메세지로 보고 이를 처리한다. 
+- Spring MVC에서 이러한 작업을 하는데 사용되는 어노테이션이 바로 @RequestBody와 @ResponseBody이다.
+- @ResponseBody를 이용하여 파라미터를 받으면 HTTP 요청 메세지 본문을 분석하는 것이 아닌 그냥 하나의 통으로 받아서 이를 적절한 클래스 객체로 변환하게 되고 
+- @ResponseBody를 사용하여 특정 값을 리턴하면 View 개념이 아닌 HTTP 응답 메세지에 그 객체를 바로 전달할 수 있다.
+
+### MessageConverter의 종류
+
+- HttpMessageConverters는 HttpMessageConvertersAutoConfiguration Class에 인해서 적용이 된다. 
+- StringHttpMessageConverter
+- FormHttpMessageConverter
+- ByteArrayMessageConverter
+- MarshallingHttpMessageConverter
+- MappingJacksonHttpMessageConverter
+- 각 데이터 타입에 맞는 Converter가 사용된다. 
+
+### ViewResolver
+- 스프링부트에 등록 되어있는 스프링 웹 MVC의 ContentNegotiatingViewResolver 가 어떤 contentType일 때 어떤 응답을 보내고, accept header 요청에 의해서 해당 요청에 맞는 응답을 보내는 작업을 알아서 해준다.
+
+정적 리소스 지원 
+---------------
+
+### 정적 리소스 맵핑 "/**". 루트로 맵핑된다.
+
+### 기본 리소스 위치
+
+- classpath:/static
+- classpath:/public
+- classpath:/resources/
+- classpath:/META-INF/resources
+- 예) "/hello.html" 접근시 /static/hello.html 응답
+
+- spring.mvc.static-path-pattern: 맵핑 설정 변경 가능
+- application.yml에서 spring.mvc.static-path-pattern: /static/** 으로 설정 변경시
+- localhost:8080/hello.html => localhost:8080/static/hello.html로 접근
+- spring.mvc.static-locations: 리소스 찾을 위치 변경 가능
+- 기존의 기본 리소스 위치를 사용하지 않고 변경한 위치만 사용하므로 권장하지 않는 방법이다.
+- 이방법 보다는 WebMvcConfigurer를 구현상속받아서 addResourceHandlers로 커스터마이징 하는 방법이 더 좋다. 기본 리소스 위치를 사용하면서 추가로 필요한 리소스위치만 정의해서 사용할 수 있다.
+- localhost:8080/m/hello.html 접근시 resources/m/hello.html 리턴
+- 여기서 주의할점은 캐시 설정을 따로 해야 한다는 것이다. 기본 리소스들은 기존의 캐싱 전략이 적용되어 있다.
+
+```java
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+​
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/m/**")
+            .addResourceLocations("classpath:/m/")
+            .setCachePeriod(20);
+    }
+}
+```
+- 기본 리소스 위치에 있는 리소스들은 ResourceHttpRequestHandler가 처리하는데, 브라우저에서 304 status을 내려주는 경우가 있다.
+- html 파일이 변경되는 순간 파일에 Last-Modified 라는 최종 변경시간이 기록되는데,
+- 브라우저에서는 처음에 html파일을 요청하고 200 status를 받으면 해당 시간을 If-Modified-Since에 기록해 놓는다.
+- 그리고 브라우저에서 다시 html요청을 하고 응답을 받을때, resopnse 헤더에 넘어오는 Last-Modified 시간이 request 헤더에 보낸 If-Modified-Since와 같다면, html 파일의 변경이 없었다는 의미이므로 다시 리소스를 받아오지 않고 304 status와 캐시된 파일을 내려준다.
+- 하지만 html이 변경됐을 경우 response 헤더에 넘어오는 Last-Modified 시간이 request 헤더에 넘긴  If-Modified-Since 시간 이후이므로 새로 리소스를 받아서 200 status를 반환한
+
+### 웹 JAR 
+- 자바스크립트 라이브러리를 webjar형태로 dependency를 추가해서 사용할 수 있다.
+- 스프링 부트에서 추가로 제공하는 기능이있는데, jquery의 버전이 올라갈 때마다 버전을 일일히 바꿔주지 않아도 된다. 
+- 이 기능을 사용하려면 webjars-locator-core 의존성을 추가해야 한다.
+- 이것의 내부적인 동작은 springframework의 resource chaining에 의해서 이루어진다.
+
+```javascript
+<script src="/webjars/jquery/dist/jquery.min.js"></script>
+```
+
+
+### index 페이지와 파비콘 
+
+- 스프링 부트의 정적 리소스 4가지 기본 위치중 아무 곳이나 index.html을 두면된다.
+
+    - classpath:/static
+    - classpath:/public
+    - classpath:/resources/
+    - classpath:/META-INF/resources
+
+- 그러면 스프링부트는
+
+    - index.html을 찾아보고 있으면 제공
+    - index.템플릿 찾아보고 있으면 제공
+    - 둘 다 없으면 에러페이지를 내보낸다.
+
+- favicon.io
+
+    - 기본리소스 위치에 위의 파일명으로 위치시킨다.
+    - 파이콘 만들기: https://favicon.io/
+    - 파비콘은 캐시가 되어있으므로, 크롬에서 캐시비우고 새로고침을 하면 확인할 수 있다.
+
+
+
+
+
+
+
+
+
