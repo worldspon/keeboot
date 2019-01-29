@@ -475,6 +475,7 @@ public class TesterProperties {
 ```
 - 값을 properties에 다르게 세팅한 후 
 
+```java
 2018-10-31 15:04:48.380 ERROR 26696 --- [main] o.s.b.d.LoggingFailureAnalysisReporter   :
 
 ***************************
@@ -489,6 +490,7 @@ Binding to target org.springframework.boot.context.properties.bind.BindException
     Value: G
     Origin: class path resource [application.properties]:1:13
     Reason: 반드시 최소값 3과(와) 최대값 15 사이의 크기이어야 합니다.
+```
 
 이와같은 에러메세지가 나오는데 FailureAnalyzer 덕분에 이쁘게 나온다. 
 
@@ -528,14 +530,7 @@ Binding to target org.springframework.boot.context.properties.bind.BindException
 - Log4J2: log4j2-spring.xml
 - JUL(비추천): logging.properties
 - Logback extension
-- logback-spring.xml을 사용하면 logback.xml을 사용하는 것과 같고, 스프링부트에서 추가로 아래의 익스텐션을 사용할 수 있게 제공한다.
-
-
-```java
-프로파일 <springProfile name="프로파일">
-
-Environment 프로퍼티<springProperty>
-```
+- logback-spring.xml을 사용하면 logback.xml을 사용하는 것과 같고, 스프링부트에서 추가로 익스텐션을 사용할 수 있게 제공한다.
 
 - 로거를 Log4j2로 변경하기
     - https://docs.spring.io/spring-boot/docs/current/reference/html/howto-logging.html#howto-configure-log4j-for-logging
@@ -617,8 +612,7 @@ Environment 프로퍼티<springProperty>
 ### ViewResolver
 - 스프링부트에 등록 되어있는 스프링 웹 MVC의 ContentNegotiatingViewResolver 가 어떤 contentType일 때 어떤 응답을 보내고, accept header 요청에 의해서 해당 요청에 맞는 응답을 보내는 작업을 알아서 해준다.
 
-정적 리소스 지원 
----------------
+## 정적 리소스 지원 
 
 ### 정적 리소스 맵핑 "/**". 루트로 맵핑된다.
 
@@ -688,6 +682,435 @@ public class WebConfig implements WebMvcConfigurer {
     - 기본리소스 위치에 위의 파일명으로 위치시킨다.
     - 파이콘 만들기: https://favicon.io/
     - 파비콘은 캐시가 되어있으므로, 크롬에서 캐시비우고 새로고침을 하면 확인할 수 있다.
+
+### HtmlUnit
+- HTML 템플릿 뷰 테스트를 보다 전문적으로 할 수있다.
+- http://htmlunit.sourceforge.net/  
+- http://htmlunit.sourceforge.net/gettingStarted.html  (참조)
+- 의존성 추가
+- WebClient로 요청페이지,태그,엘리먼트 등을 가져와 단위테스트를 할 수 있다.  
+```java
+<dependency>    
+<groupId>​org.seleniumhq.selenium​</groupId>    
+<artifactId>​htmlunit-driver​</artifactId>    
+<scope>​test​</scope> 
+</dependency> 
+
+<dependency>    
+<groupId>​net.sourceforge.htmlunit​</groupId>    
+<artifactId>​htmlunit​</artifactId>    
+<scope>​test​</scope> 
+</dependency
+```
+
+### ExceptionHandler
+
+- 스프링 @MVC 예외 처리 방법
+    - @ControllerAdvice
+    - @ExchangeHandler
+
+- 스프링부트에서는 ExceptionHandler를 기본적으로 등록하여 Exception을 처리하고 있다.
+- 기본 예외처리기는 스프링에서 자동적으로 등록하는 BasicErrorController에서 관리한다. (에러발생시 JSON형식으로 리턴)
+- 커스텀 Exception 핸들러, 커스텀 Exception 클래스를 만들어서 예외를 처리할 수 있다.
+- Http Status 코드에 맞게 예외 발생시 html 문서를 클라이언트에 전송할 수 있다.
+
+- 스프링부트가 제공하는 기본 예외 처리기
+- BasicErrorController
+    - HTML과 JSON 응답 지원
+
+- 커스터마이징 방법
+    - ErrorController 구현
+
+### @ExceptionHandler로 예외처리 하기 
+```java
+public class AppError {
+
+    private String message;
+    private String reason;
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    //Exception 발생 시 해당 Exception에 대한 정보를 저장하는 용도로 작성된 클래스
+}
+
+public class SampleException extends RuntimeException {
+    //RuntimeException을 상속받은 Sample class만들어 놓음.
+    //custom Exception 클래스를 표현한 샘플 클래스이다. 
+    //ExceptionHandler에서 해당 Exception이 발생할 때 처리할 수 있는 로직을 구현할 수 있다.
+
+}
+
+
+@Controller
+public class SampleController {
+
+    @GetMapping("/hello")
+    public String hello(Model model) {
+        model.addAttribute("name", "nj");
+        return "hello";
+        throw new SampleException();
+    }
+
+    @ExceptionHandler(SampleException.class)
+    public @ResponseBody AppError SampleError(SampleException e) {
+        AppError appError = new AppError();
+        appError.setMessage("error.app.key");
+        appError.setReason("IDK IDK IDK");
+        return appError;
+    }
+}
+
+//사용자 측에서 /hello 요청이 왔을 때 위에서 작성한 SampleException을 발생시킨다. 
+//이 때 @ExceptionHandler 어노테이션이 해당 예외를 받아서 처리할 수 있음
+//appError 객체에 Exception 관련 정보를 넣고 사용자에게 JSON 형식으로 반환됨
+```
+
+
+
+
+### 커스텀 에러 페이지
+
+- 상태 코드 값에 따라 에러 페이지 보여주기
+- HTML 문서를 작성할 시 HTTP Status 코드에 맞게 Html 문서를 작성해야 한다.
+- HTML 문서의 파일명이 상태코드와 같거나 아니면 5xx 와 같이 패턴을 맞추어서 만들어야 한다.
+
+
+- src/main/resources/static/error/ 
+    - 404.html
+    - 5xx.html
+
+```html
+<!--404.html-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Title</title>
+</head>
+<body>
+<h1>Hello 404</h1>
+</body>
+</html>
+```
+```html
+<!--5xx.html-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1>Hello 505</h1>
+</body>
+</html>
+```
+```java
+@Controller
+public class SampleController {
+
+    @GetMapping("/hello")
+    public String hello()  {
+        throw new SampleException();
+    }
+}
+```
+Root(/)를 처리하는 코드를 만들지 않았기 때문에 Not Found(Status code : 404)가 리턴되고 그에 맞춰 HTML 문서 404.html 이 반환된다.
+/hello 요청을 처리하는 코드를 작성했지만 예외가 발생했기 때문에 Status code : 505 가 리턴되고 그에 맞춰 HTML 문서 5xx. html이 반환된다.
+
+### HATEOAS 
+- HATEOAS는 `H`ypermedia `A`s The `E`ngine `O`f `A`pplication `S`tate의 약자로 하이퍼미디어를 REST API의 상태 정보를 관리하기 위한 매커니즘으로 활용하는 것을 말합니다. 
+REST API에서 클라이언트에 리소스를 넘겨줄 때 특정 부가적인 리소스의 링크 정보를 넘겨주게 되며 이를 통해 REST API의 리소스 상태에 따른 관리를 진행하게 됩니다.
+
+- 하이퍼 미디어란 : 하이퍼미디어(hypermedia)란 하이퍼텍스트(hypertext)의 커다란 집합체라고 말 할 수 있다. 하이퍼텍스트는 일반적인 텍스트와 별 다른 차이가 없지만 하이퍼텍스트 링크 즉, 
+하이퍼링크(hyperlink)라는 다른 문서로의 연결고리를 가진다는 큰 특징을 가지고 있다. 다시말해, 하이퍼텍스트란 어떤 문서내의 특정 단어 또는 문장으로써,그 단어 또는 문장 상에서 사용자가 마우스를 클릭하게 되면 스크린상에 새로운 문서를 나타나게 하는 텍스트를 의미한다.
+
+- HATEOAS를 쓰는 이유는 다음과 같은 기존 REST API의 단점을 보완하기 위해서이다.
+1. REST API는 앤드포인트 URL이 정해지고 나면 이를 변경하기 어렵다는 단점이 있습니다. 만일 API의 URL을 변경하게 되면 모든 클라이언트의 URL까지 수정해야하기 때문에 번거로워지므로 기존 다른 API를 지속적으로 추가하게 됩니다. 따라서URL 관리가 어렵게 됩니다. 
+2. 전달받은 정적 자원의 상태에 따른 요소를 서버 단에서 구현하기 어렵기 때문에 클라이언트 단에서 이 부분에 대한 로직을 처리해야 합니다.
+
+위 단점들을 links 요소를 통해 href 값의 형태로 보내주기 때문에 자원 상태에 대한 처리를 링크에 있는 URL을 통해 처리할 수 있게됩니다.
+
+- 의존성 추가 
+```java
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-hateoas</artifactId>
+</dependency>
+```
+
+```java 
+//테스트 코드 
+@RunWith(SpringRunner.class)
+@WebMvcTest(SampleController.class)
+public class SpringBootTutorialApplicationTests {
+
+    @Autowired
+    MockMvc mockMvc;
+
+    @Test
+    public void hello() throws Exception {
+        mockMvc.perform(get("/hello"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._links.self").exists());
+    }
+}
+
+// _links는 HATEOAS를 구현하기 위해 스프링 부트에서 생성한 JSON name이다.
+// 그리고 그 뒤의 self는 자기 참조를 뜻하는 것을 JSON을 통해서 나타낸 것이다.
+
+```
+
+- 소스코드 
+```java
+public class Hello {
+
+    private String prefix;
+
+    private String name;
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString(){
+        return prefix + " " + name;
+    }
+}
+
+```
+```java
+@RestController
+public class SampleController {
+
+    @GetMapping("/hello")
+    public Resource<Hello> hello(){
+        Hello hello = new Hello();
+        hello.setPrefix("Hey,");
+        hello.setName("saelobi");
+
+        Resource<Hello> helloResource = new Resource<>(hello);
+        helloResource.add(linkTo(methodOn(SampleController.class).hello()).withSelfRel());
+
+        return helloResource;
+    }
+}
+//Resource 객체에 HATEOAS를 구현하기 위해 /hello URL의 링크 정보를 추가하는 것을 볼 수 있습니다.
+//withSelfRel 메서드를 통해서 해당 URL이 자기 참조인 것을 나타내고 있습니다.
+```
+
+### CORS((Cross-Origin Resource Sharing)란 
+- HTTP 요청은 기본적으로 Cross-Site HTTP Requests가 가능하다. <img> 태그로 다른 도메인의 이미지파일을 가져오거나, <link>태그로 다른 도메인의 
+css를 가져오거나, <script> 태그로 다른 도메인의 javascript 라이브러리를 가져오는것이 모두 가능하다. 하지만 <script></script>로 둘려싸여 있는 
+스크립트에서 생성된 Cross-Site HTTP Requests는 Same Origin Policy를 적용받기 때문에 Cross-Site HTTP Requests가 불가능하다. 즉 !! 프로토콜,호스트명,포트가 같아야만 요청이 가능한 것이다. 
+
+### SOP (Same Origin Policy) - 동일 출처 정책 
+- SOP란 한 출처에서 로드된 문서나 스크립트가 다른 출처 자원과 상호작용하지 못하도록 제약하는 것을 말한다. 
+
+- CORS는 동일한 출처(Origin: 최초 자원이 서비스된 출처)가 아니여도 다른 출처에서의 자원을 요청하여 쓸 수 있게 허용하는 구조를 뜻한다.
+- 보통 보안 상의 이슈(DOM을 통한 취약한 데이터 접근 시도) 때문에 동일 출처(Single Origin Policy)를 기본적으로 웹에서는 준수한다.
+- 따라서 최초 자원을 요청한 출처 말고 다른 곳으로 스크립트를 통해 자원을 요청하는 것은 금지된다.
+- CORS을 적용하려면 웹 어플리케이션에 그에 따른 처리를 해야하고 스프링 부트에서는 @CrossOrigin 어노테이션 혹은 WebConfig를 통해 CORS를 적용하는 방법을 제공하고있다.
+- AJAX가 널리 사용되면서 <script></script>로 둘러싸여 있는 스크립트에서 생성되는 XMLHttpRequest에 대해서도 Cross-Site HTTP Requests가 가능해야한다는 요구가 늘어나자 W3C에서 CORS라는 권고안이 나오게 되었다. 
+
+- Origin ? 
+    - URI 스키마 (http, https)
+    - hostname(whiteship.me, localhost)
+    - 포트 (8080,18080)
+
+
+### @CrossOrigin 어노테이션으로 적용하는방법
+
+- Client가 될 프로젝트를 따로 생성하고 Port를 8080이외의 포트로 설정해준다. 
+```javascript
+    $(function(){
+        $.ajax("http://localhost:8080/hello")
+            .done(function(msg){
+                alert(msg);
+            })
+            .fail(function(){
+                alert("fail");
+            })
+    })
+```
+- CORS가 적용될 웹 어플리케이션 소스코드 ↓
+
+```java
+@RestController
+public class SampleController {
+
+    @GetMapping("/hello")
+    public String hello(){
+        return "hello";
+    }
+}
+```
+- ajax로 http://localhost:8080/hello에 요청을 하지만 실패하게 된다. 
+
+
+
+- CORS를 적용한 웹 어플리케이션 ↓
+```java
+@RestController
+public class SampleController {
+
+    @CrossOrigin(origins="http://localhost:18080")
+    @GetMapping("/hello")
+    public String hello(){
+        return "hello";
+    }
+}
+```
+- 해당 출처에서 스크립트를 통해 자원을 획득할 수 있도록 허용한다. 
+
+#### WebMvcConfigurer를 상속받아서 설정하는 방법 
+
+```java
+@RestController
+public class SampleController {
+
+    @GetMapping("/hello")
+    public String hello(){
+        return "hello";
+    }
+}
+
+
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("http://localhost:18080");
+    }
+}
+```
+- java 코드로 WebMvcConfigurer를 상속받는 설정 class파일을 만든 후 addCorsMappings()를 override하여 설정할 수 있다. 
+- WebMvcConfigurer를 사용하면 글로벌 설정이 가능하다.
+
+
+스프링 데이터 
+-------------
+
+### 인-메모리 데이터베이스 
+
+- 디스크가 아닌 주 메모리에 모든 데이터를 보유하고 있는 데이터베이스.
+- 디스크 검색보다 자료 접근이 훨씬 빠른 것이 큰 장점이다.
+- 단점은 매체가 휘발성이기 때문에 DB 서버가 꺼지면 모든 데이터가 유실된다는 단점이 있다.
+- 스프링 부트에서 H2, HSQL 같은 인메모리, 디스크 기반 DB를 지원한다.
+
+의존성 추가 
+
+```java
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-jdbc</artifactId>
+</dependency>
+
+<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <scope>runtime</scope>
+</dependency>
+```
+- H2 데이터베이스 의존성을 추가하고 난 후, 설정 파일에 아무 설정이 되어 있지 않으면 스프링 부트는 자동적으로 H2 데이터베이스를 기본 데이터베이스로 채택한다.
+- spring-boot-starter-jdbc 의존성을 추가하면 DataSource, JdbcTemplate을 별다른 설정없이 @Autowired 같은 빈 주입 어노테이션만 가지고도 쓸 수 있다.
+- 인메모리 데이터베이스 기본 연결정보 확인하는 방법 ! 
+    - URL : "testdb"
+    - user : "sa"
+    - password : ""
+- H2-console 사용하는 방법
+    - spring-boot-devtools 추가하거나 
+    - spring.h2.console.enabled=true만 추가 
+    - /h2-console로 접속 (이 path도 바꿀 수 있음)
+
+### DBCP(DataBase Connection Pool)
+
+- DBCP
+    - DB에 커넥션 객체를 미리 만들어 놓고 그 커넥션이 필요할 때마다 어플리케이션에 할당하는 개념.
+    - 마치 어떤 풀(저장소)에 아이템을 미리 담가놓고 필요할 때 꺼내는 것이다.
+    - 커넥션 객체를 만드는 것이 큰 비용을 소비하기 때문에 미리 만들어진 커넥션 정보를 재사용하기 위해 나온 테크닉이다.
+    - 스프링 부트에서는 기본적으로 `HikariCP`라는 DBCP를 기본적으로 제공한다. (속도가 가장 빠르다고함)
+
+### DBCP 설정 
+
+- DBCP 설정은 애플리케이션 성능에 중요한 영향을 미치므로 신중히 고려해야하는 부분이다.
+- 커넥션 풀의 커넥션 개수를 많이 늘린다고 해서 제대로된 성능이 나오는 것이 아니다. 왜냐하면 커넥션은 CPU 코어의 개수만큼 스레드로 동작하기 때문입니다.
+- 스프링에서 DBCP를 설정하는 방법 : spring.datasource.hikari.maximum-pool-size=4  커넥션 객체의 최대 수를 4개로 설정하겠다는 의미이다. 
+
+```s
+# application.properties
+spring.datasource.hikari.maximum-pool-size=4
+#커넥션 객체의 최대 수를 4개로 설정하겠다.
+```
+
+## Docker 
+
+- 도커(docker) : 오픈소스 컨테이너 프로젝트
+- 기존 가상머신과 다르게 게스트 OS를 사용하지 않고 기존 운영체제와 커널을 공유하기 때문에 빠르게 기존 운영환경과 격리된 환경인 컨테이너를 로딩되고 실행할 수 있다.
+
+### 도커에 My_SQL 설치하기 (Linux 명령어)
+```
+docker run -p 3306:3306 --name mysql_boot -e MYSQL_ROOT_PASSWORD=1 -e MYSQL_DATABASE=springboot -e MYSQL_USER=saelobi -e MYSQL_PASSWORD=pass -d mysql
+```
+
+- 각 옵션에 대한 설명 
+    - `-p 3306:3306` → 도커의 3306 포트를 로컬 호스트의 3306 포트에 연결하라는 것을 나타낸다.
+    - `--name mysql_boot` → 도커 컨테이너의 이름을 지정한다.
+    - `-e MYSQL_ROOT_PASSWORD=1` → MySQL root 계정의 패스워드를 1로 설정한 것을 나타낸다.
+    - `-e MYSQL_DATABASE=springboot` → MySQL에 springboot 데이터베이스를 만든다. 
+    - `-e MYSQL_USER=saelobi -e MYSQL_PASSWORD=pass` → 유저의 정보를 입력한 옵션
+    - `-d mysql` → 백그라운드에서 mysql 컨테이너를 띄우는 명령어 옵션
+
+- 만일 mysql 이미지가 로컬에 없을 경우 mysql 이미지를 다운로드 받아 mysql 컨테이너를 로딩한다.
+
+- docker 명령어 
+    - docker ps  : 실행중인 프로세스를 보여줌
+    - docker exec -i -t mysql_boot bash : MySQL 컨테이너 상에서 bash를 실행한다. 
+    - exec : 컨테이너 외부에서 컨테이너 안의 명령을 실행하는 명령어 
+    - -i, -interactive=false : 표준 입력을 활성화하며 컨테이너와 연결되어 있지 않더라도 표준 입력을 유지한다. 
+    - -t, --tty=false :  TTY 모드를 사용한다. Bash를 사용하려면 이 옵션을 설정해야한다. 이옵션을 설정하지 않으면 명령을 입력할 수는 있지만 셸이 표시되지 않는다.
+
+- MySQL 명령어 
+    - mysql -u shs -p    : 비밀번호 입력후 MySQL 접속 
+    - show databases;    : Database의 목록 확인
+    - use (databasename) : 해당 database로 접근
+    - show tables        : 테이블 보기 
+    
+
+
+
+
+
 
 
 
