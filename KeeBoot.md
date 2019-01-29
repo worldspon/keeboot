@@ -1106,9 +1106,63 @@ docker run -p 3306:3306 --name mysql_boot -e MYSQL_ROOT_PASSWORD=1 -e MYSQL_DATA
     - use (databasename) : 해당 database로 접근
     - show tables        : 테이블 보기 
     
+### MySQL 5.* 최신버전 사용할 때
+- 문제 : Sat Jul 21 11:17:59 PDT 2018 WARN: Establishing SSL connection without server's identity verification is not recommended. ​According to MySQL 5.5.45+, 5.6.26+ and 5.7.6+ requirements SSL connection must be established by default if explicit option isn't set.​ For compliance with existing applications not using SSL the ​verifyServerCertificate property is set to 'false'​. You need either to explicitly disable SSL by setting useSSL=false​, or set ​useSSL=true and provide truststore​ for server certificate verification.
+- 해결 : jdbc:mysql:/localhost:3306/springboot?​useSSL=false
+
+### MySQL 8.* 최신버전 사용할 때
+- 문제 : com.mysql.jdbc.exceptions.jdbc4.MySQLNonTransientConnectionException : Public Key Retrieval is not allowed 
+- 해결 : jdbc:mysql:/localhost:3306/springboot?useSSL=false&​allowPublicKeyRetr ieval=true
 
 
+스프링 데이터 JPA
+-----------------
 
+### Spring-Data-JPA란
+
+- ORM은 "관계형 데이터베이스의 구조화된 데이터와 자바와 같은 객체 지향 언어 간의 구조적 불일치를 어떻게 해소할 수 있을까"라는 질문에서 나온 객체-관계 매핑 프레임워크이다.
+- 객체와 릴레이션을 매핑할 때 생기는 다양한 문제들을 해결할 수 있는 솔루션이다.
+- JPA은 ORM을 위한 자바 EE 표준이며 Spring-Data-JPA는 JPA를 쉽게 사용하기 위해 스프링에서 제공하고 있는 프레임워크이다.
+- 추상화 정도는 Spring-Data-JPA -> JPA -> Hibernate -> Datasource (왼쪽에서 오른쪽으로 갈수록 구체화)
+- 참고로 Hibernate는 ORM 프레임워크이며 DataSource는 스프링과 연결된 MySQL, PostgreSQL 같은 DB를 연결한 인터페이스이다. 
+
+### Spring-Data-JPA 연동 ( + PostgreSQL )
+
+- PostgreSQL 도커 띄우기 - 리눅스 
+```
+docker run -p 5432:5432 -e POSTGRES_PASSWORD=pass -e POSTGRES_USER=keesun -e POSTGRES_DB=springboot --name postgres_boot -d postgres 
+```
+
+```
+docker exec -i -t postgres_boot bash
+실행된 도커의 bash shell에 접속하기 위한 명령어.
+
+su - postgres
+psql springboot -U saelobi
+
+postgres로 유저명을 바꾸고 난 후 saelobi 계정으로 docker 커맨드 옵션에 입력했던 springboot DB에 접속할 수 있다.
+```
+
+
+- postgreSQL 의존성 추가 
+
+```java
+<dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+</dependency>
+```
+
+```s
+spring.datasource.hikari.maximum-pool-size=4
+
+spring.datasource.url=jdbc:postgresql://localhost:5432/springboot
+spring.datasource.username=saelobi
+spring.datasource.password=pass
+
+# 드라이버가 createClub을 지원하지 않아서 warning 뜨는 것을 방지
+spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true
+```
 
 
 
