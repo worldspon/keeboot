@@ -1,4 +1,4 @@
-SSH,HTTPS,CORS
+SSL,HTTPS,HTTP2,CORS
 ==============
 
 SSL,HTTPS
@@ -13,12 +13,12 @@ SSL,HTTPS
 
 SSL 
 ---
-- SSH인증서는 클라이언트와 서버간의 통신을 제3자가 보증해주는 전자화된 문서다.
+- SSL 인증서는 클라이언트와 서버간의 통신을 제3자가 보증해주는 전자화된 문서다.
 - 통신 내용이 공격자에게 노출되는 것을 막을 수 있다. 
 - 클라이언트가 접속하려는 서버가 신뢰 할 수 있는 서버인지를 판단할 수 있다.
 - 통신 내용의 악의적인 변경을 방지할 수 있다.
 
-SSH 인증서 생성 
+SSL 인증서 생성 
 ---------------
 - Spring Boot SSL key generate L 명령어 수행한 위치에 키스토어가 생성된다. 
 - $ keytool -genkey -alias tomcat -storetype PKCS12 -keyalg RSA -keysize 2048 -keystore keystore.p12 -validity 4000
@@ -52,6 +52,8 @@ private Connector createStandardConnector() {
 }
 ```
 
+HTTP2
+-----
 - HTTP2 설정은 SSL이 기본적으로 적용되어있는 상태에서 server.http2.enabled=를 true로 할당해주면 된다.
 - 추가적으로 해줘야하는 작업은 각 웹서버마다 다르다 (undertow는 https 설정이 되어있으면 추가적인 설정 없이 http2 enable만 true로 할당하면되고, tomcat은 9.X버전과 JDK9 이상을 쓰면 추가적인 설정없이 http2를 적용할 수 있다.)
 
