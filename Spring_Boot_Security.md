@@ -22,7 +22,7 @@ Spring Boot Security 정리
 ```
 
 #### index.html
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -59,6 +59,7 @@ Spring Boot Security 정리
     <h1>Hello</h1>
 </body>
 </html>
+```
 
 ```java
 @Controller
