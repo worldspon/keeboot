@@ -75,7 +75,258 @@ annotation
     - 등등 조건을 위한 Conditional 어노테이션은 엄청나게 많다 document 참조바람.  
     - 한글문서 참조 http://wonwoo.ml/index.php/post/20 
 	
-                 
+스프링 부트 프로젝트 구조 
+-----------------------
+- 메이븐 기본 프로젝트 구조와 동일 
+    - 소스 코드 (src\main\java) 
+    - 소스 리소스 (src\main\resource) 
+    - 테스트 코드 (src\test\java) 
+    - 테스트 리소스 (src\test\resource) 
+ 
+- 메인 애플리케이션 위치 
+    - 기본 패키지
+
+
+스프링 부트 원리
+---------------
+
+### 스프링 부트 의존성 관리 
+
+- 스프링 부트는 Maven, Gradle 같은 빌드 관리 툴을 통해 의존성을 관리합니다. 
+- 여기서는 Maven 기준으로 스프링 부트가 의존성을 어떻게 관리하는 지 살펴보도록 하겠습니다.
+
+- 스프링 부트에 대한 기본적인 의존성 
+- pom.xml
+```java
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.1.1.RELEASE</version>
+</parent>
+
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+- 다음과 같이 의존성을 추가하면 스프링 부트가 자체적으로 관리하는 의존성이 자동적으로 상속됩니다. 
+- 그 이유는 spring-boot-starter-parent 아티팩트를 parent 태그에 명시하면 spring-boot-dependencies-x.x.x.RELEASE.pom 파일이 상속되어 사용자가 특별히 명시하지 않아도 스프링 부트에서 제공하는 의존성이 자동적으로 설정되기 때문입니다.
+
+- 만일 spring-boot-starter-parent 로 상속받은 설정 정보를 다시 재정의하고 싶으면 다음과 같이 properties 태그에 명시하면 됩니다. 
+```java
+<properties>
+    <spring.version>5.0.6.RELEASE</spring.version>
+</properties>
+```
+
+- 그리고 스프링 부트에서 자체적으로 제공하지 않는 의존성(spring-boot-dependencies-x.x.x.RELEASE.pom 목록에 없는)은 pom.xml에 명시해야 합니다. 
+```java
+<dependency>
+    <groupId>org.modelmapper</groupId>
+    <artifactId>modelmapper</artifactId>
+    <version>2.1.0</version>
+</dependency>
+```
+
+### 스프링 부트 자동설정 이해 
+
+- 스프링 부트는 스프링 프레임워크에서 어플리케이션을 만들 때 주로 사용하는 설정들을 자동으로 설정합니다. 
+- 이 기능은 자바의 main 진입점에 @SpringBootApplication을 붙임으로서 사용할 수 있습니다.
+- 스프링 부트는 스프링 프레임워크에서 어플리케이션을 만들 때 주로 사용하는 설정들을 자동으로 설정합니다. 
+- 이 기능은 자바의 main 진입점에 @SpringBootApplication을 붙임으로서 사용할 수 있습니다.
+
+```java
+@SpringBootApplication
+public class Application {
+
+    public static void main(String[] args) {
+        SpringApplication application = new SpringApplication(Application.class);
+        application.run(args);
+    }
+}
+```
+- 위 @SpringBootApplication는 다음의 어노테이션들을 붙인 효과와 동일한 기능을 합니다.
+
+```java
+@Configuration
+@ComponentScan
+@EnableAutoConfiguration
+public class Application {
+
+    public static void main(String[] args) {
+        SpringApplication application = new SpringApplication(Application.class);
+        application.run(args);
+    }
+}
+```
+- 스프링 부트는 @SpringBootApplication에 있는 @ComponentScan과 @EnableAutoConfiguration 어노테이션을 통해 두 단계로 나뉘어서 스프링 부트 프로젝트의 스프링 빈을 찾아내어 등록합니다. 
+- @ComponentScan은 스프링 프레임워크에서 @Repository, @Configuration, @Service 등 스프링 빈을 나타내는 어노테이션을 @ComponentScan이 붙은 클래스가 위치해 있는 현재 패키지를 기준으로 그 아래 패키지까지 찾아내서 스프링 빈으로 등록하는 기능을 가진 어노테이션입니다.
+
+- @EnableAutoConfiguration은 스프링 부트에서 스프링 프레임워크에서 많이 쓰이는 스프링 빈들을 자동적으로 컨테이너에 등록하는 역할을 하는 어노테이션입니다. 
+- @EnableAutoConfiguration이 등록하는 빈들의 목록은 spring-boot-autoconfigure-2.X.X.RELEASE.jar 파일에 포함되어 있습니다. 
+
+```java
+// spring-boot-autoconfigure-2.X.X.RELEASE.jar
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration,\
+org.springframework.boot.autoconfigure.aop.AopAutoConfiguration,\
+org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration,\
+org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration,\
+org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration,\
+org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration,\
+org.springframework.boot.autoconfigure.cloud.CloudServiceConnectorsAutoConfiguration,\
+org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration,\
+org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration,\
+org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration,\
+```
+- 위 목록 중에는 @EnableAutoConfiguration를 붙였을 시 스프링 부트 프로젝트를 기본적으로 웹 프로젝트로 만들 수 있는 기본값이 설정되어 있습니다 (ServletWebServerFactory 빈이 설정되어 있음).
+- 따라서 스프링 부트를 웹 어플리케이션으로 만들지 않고 일반 프로젝트 용도로 쓰고자 하면 다음과 같은 코드로 실행해야 합니다. 
+
+```java
+@Configuration
+@ComponentScan
+public class Application {
+
+    public static void main(String[] args) {
+        SpringApplication application = new SpringApplication(Application.class);
+        application.setWebApplicationType(WebApplicationType.NONE); 
+        application.run(args);
+    }
+}
+```
+### Maven 프로젝트로 AutoConfigure 자동 설정 클래스 만들기
+- Maven 프로젝트로 @EnableAutoConfiguration 어노테이션의 자동 빈 등록 리스트에 포함되는 스프링 빈 설정 클래스를 만들 수 있습니다. 
+- 먼저 IDE를 통해서 Maven 프로젝트를 만들고 pom.xml에 다음과 같이 설정 정보를 입력해야 합니다.
+
+```java
+
+<groupId>com.shs</groupId>
+<artifactId>autoconfigure</artifactId>
+<version>1.0-SNAPSHOT</version>
+
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-autoconfigure-processor</artifactId>
+        <optional>true</optional>
+    </dependency>
+
+</dependencies>
+
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-dependencies</artifactId>
+            <version>2.1.1.RELEASE</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+- 프로젝트의 각 파일들의 내용은 다음과 같습니다.
+
+#### spring.factories
+```java
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.shs.AutoConfig
+
+package com.shs;
+
+public class Shs {
+
+    String name;
+
+    int howLong;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getHowLong() {
+        return howLong;
+    }
+
+    public void setHowLong(int howLong) {
+        this.howLong = howLong;
+    }
+
+    @Override
+    public String toString() {
+        return "Shs{" +
+                "name='" + name + '\'' +
+                ", howLong=" + howLong +
+                '}';
+    }
+}
+
+@Configuration
+public class AutoConfig {
+
+    @Bean
+    public Shs shs(){
+        Shs shs = new Shs();
+        shs.setHowLong(5);
+        shs.setName("shs");
+        return shs;
+    }
+}
+```
+- @EnableAutoConfiguration 어노테이션은 프로젝트 내의 spring.factories의 설정정보를 읽어와 등록되어 있던 
+- @Configuration 클래스의 정보를 자동적으로 컨테이너에 등록합니다.
+- 프로젝트에서 mvn install 명령어를 실행하여 패키지를 빌드하고 local repository에 등록합니다. 
+
+### AutoConfigure 프로젝트 사용하기
+- 위에서 만든 AutoConfig 설정 클래스를 사용하기 위해서는 스프링 부트 프로젝트에서 다음과 같은 의존성을 추가합니다. 
+
+```java
+<dependency>
+    <groupId>com.shs</groupId>
+    <artifactId>autoconfigure</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</dependency>
+```
+
+- 이 의존성을 토대로 스프링 부트가 컨테이너에 스프링 빈을 등록했는 지 확인하기 위해 다음과 같은 코드를 작성합니다.
+
+```java
+@Component
+public class AppRunner implements ApplicationRunner {
+
+    @Autowired
+    Shs shs;
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        System.out.println(Shs.class);
+        System.out.println(shs);
+    }
+}
+```
+
+- @SpringBootApplication 어노테이션이 붙은 메인 진입점에서 프로젝트를 실행하면 shs에 자동적으로 스프링 빈이 주입된 것을 알 수 있습니다. 
+- 새로 스프링 부트에서 Shs 클래스를 작성하여 스프링 빈으로 등록하지 않고도 위에서 작성한 
+- AutoConfig 설정 파일에 등록되어 있는 Shs 클래스가 자동적으로 등록되어 사용할 수 있다는 것을 알 수 있습니다.
+
 
 내장 웹 서버 이해 
 -----------------
