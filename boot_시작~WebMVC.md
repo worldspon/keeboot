@@ -1,21 +1,31 @@
 Spring Boot 정리 
 ================
 
+Spring Boot 란? 
+---------------
+스프링 부트(Spring Boot)는 스프링 프레임워크 기반 어플리케이션을 더 빠르고 쉽게 개발할 수 있게 해주는 오픈소스 프로젝트이다.
+스프링 프레임워크만으로 개발할 때보다 간단한 설정만으로도 쉽게 웹 어플리케이션을 제작할 수 있다.
+
+
 Bean등록 순서
 -------------
 
-- Bean을 등록할 때 첫번째로 @ComponetScan에 의해 등록된다. 
-- 어떠한 class에 @Component 어노테이션을 달아놓았다면 그 class가 bean에 등록이 된다.
-- 두번째로 @EnableAutoConfiguration에 의해 등록된다. 스프링 부트의 자동 설정은 추가한 jar 의존성을 기반으로 Spring 애플리케이션을 자동으로 설정하려고 시도한다.
-- xxxApplication.java 부터 Component scan이 진행되기 때문에  
-- xxxApplication class 패키지경로 하위의 bean만 등록이 가능하다. 
+- `첫번째`로 `@ComponetScan`에 의해 등록된다. 
+    - 어떠한 class에 @Component 어노테이션을 달아놓았다면 그 class가 bean에 등록이 된다.
+    - application.java 부터 Component scan이 진행되기 때문에  
+    - application class 패키지경로 하위의 bean만 등록이 가능하다. 
+- `두번째`로 `@EnableAutoConfiguration`에 의해 등록된다. 
+    - 스프링 부트의 자동 설정은 추가한 jar 의존성을 기반으로 Spring 애플리케이션을 자동으로 설정하려고 시도한다.
+    - spring.factories 에 등록되어있는 class들을 모두 Bean으로 등록. 자동설정한다.
+    - @Configuration이 달려있는 Class를 Bean으로 등록.
+    - @ConditionalOnXXX 이 달려있는 Class를 Bean으로 등록.
 
 
 annotation 
 ----------
 
 - @SpringBootApplication  
-    - (@EnableAutoConfiguration + @Configuaration + @ComponentScan) 이다.
+    - @EnableAutoConfiguration, @Configuaration, @ComponentScan 3개의 어노테이션들을 붙인것과 동일한 기능을 한다. 
     - 암시적으로 특정 항목에 대한 기본 검색 패키지를 정의한다.
     - 예를 들어 JPA응용 프로그램을 작성하는 경우 @SpringBootApplication 어노테이션이 달린 클래스의 패키지를 사용하여 @Entity 항목을 검색한다.
 
@@ -31,12 +41,11 @@ annotation
     - @Component, @Configuaration, @Repository, @Service, @Controller, @RestController 어노테이션이 붙은 class를 Bean객체로 만들어준다. 
 
 - @EnableAutoConriguration 
-
     - 필요한 bean을 유추해서 구성해주는 Class이다. 자동구성 Class는 ClassPath및 앱에 정의한 Bean에 따라 적용 여부가 결정된다. 
     - spring boot는 앱 타입을 유추할 때 사용할 자동 구성 클래스를 모두 spring.factories파일에 몰아 넣는다.
     - 구성할 클래스를 모두 찾아주는 org.springframework.boot.autoconfigure.AutoConfigurationImportSelector Class 중에서 getCandidateConfigurations()는 실제로 자동 구성을 유발한다. 
-    - org.springframework.core.io.support.SpringFactoriesLoader Class의 loadFactoryNames() 는 spring-boot-autoconfigure Jar에 있는 META-INF/spring.factories 파일에 프로퍼티 형식으로 열거된 구성 클래스를 읽어들여 List<String> 타입으로 반환한다. 
-    - 설정파일에 이름을 따서 명명된 속성들을 찾는것이다.
+    - org.springframework.core.io.support.SpringFactoriesLoader Class의 loadFactoryNames() 는 spring-boot-autoconfigure 에 있는 META-INF/spring.factories 에 포함되있는 jar파일들을 찾는다.
+    - 그리고 나서 SpringFactoriesLoader는 설정파일의 이름을 따서 명명된 속성들을 찾는다. 
     - @Configuaration, @Conditionalxxx 어노테이션이 달린 설정파일이나 설정파일의 조건을 읽어서 자동설정을 하게된다. 
 
 - @Conditional  
@@ -63,14 +72,13 @@ annotation
 
 - @ConditionOnClass
     - 하나 또는 여러 개의 Class가 Class 경로에 있는 경우에만 구성을 활성화 한다.
-
     - 등등 조건을 위한 Conditional 어노테이션은 엄청나게 많다 document 참조바람.  
     - 한글문서 참조 http://wonwoo.ml/index.php/post/20 
 	
                  
 
 내장 웹 서버 이해 
-------------------
+-----------------
 
 ### 스프링부트는 서버가 아니다.
 - Tomcat 객체를 생성하는법 : Tomcat tomcat = new Tomcat(); 
@@ -111,55 +119,6 @@ public void onApplicationEvent(ServletWebServerInitializedEvent event) {
 </dependency>
 ```
 
-### SSL,HTTPS
-- HTTP는 Hypertext Transfer Protocol의 약자이며, HTTPS 에서 S 는 Over Secure Socket Layer의 약자이다. 
-- HTTPS는 HTTP보다 보안이 강화된 HTTP이다. 
-- HTTP 단점 
-- 평문(암호화 하지 않은) 통신이기 때문에 도청이 가능하다. 
-- 통신 상대를 확인하지 않기 때문에 위장이 가능하다 완전성을 증명할 수 없기 때문에 변조가 가능하다.
-- HTTPS는 직접 TCP와 통신하지않고 SSL과 통신을 하게된다. SSL을 사용함으로써 암호화,증명서,완전성 보호를 이용할 수 있게된다.
-
-### SSL 
-- SSH인증서는 클라이언트와 서버간의 통신을 제3자가 보증해주는 전자화된 문서다.
-- 통신 내용이 공격자에게 노출되는 것을 막을 수 있다. 
-- 클라이언트가 접속하려는 서버가 신뢰 할 수 있는 서버인지를 판단할 수 있다.
-- 통신 내용의 악의적인 변경을 방지할 수 있다.
-
-### SSH 인증서 생성 
-- Spring Boot SSL key generate L 명령어 수행한 위치에 키스토어가 생성된다. 
-- $ keytool -genkey -alias tomcat -storetype PKCS12 -keyalg RSA -keysize 2048 -keystore keystore.p12 -validity 4000
-
-- application.properties, yml에 설정
-
-```java
-server.port=8443
-server.ssl.key-store=keystore.p12
-server.ssl.key-password=tlagustjq
-server.ssl.key-store-type=PKCS12
-server.ssl.key-alias=undertow
-```
-
-- 이렇게 SSL 키를 등록할 수 있다. 설정이 완료되면 앞으로는 애플리케이션으로의 모든 접근은 https로 해야한다. 
-- 추가적으로 http접근도 가능하게 설정하려면 http 요청을 받기 위한 connector를 추가해주면 된다. 
-- 대신 properties,yml 에서 https의 포트를 변경해준다. 
-
-```java
-@Bean
-public ServletWebServerFactory serverFactory() {
-    TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
-    tomcat.addAdditionalTomcatConnectors(createStandardConnector()); 
-    return tomcat;
-}
-
-private Connector createStandardConnector() {
-    Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
-    connector.setPort(8080);
-    return connector;
-}
-```
-
-- HTTP2 설정은 SSL이 기본적으로 적용되어있는 상태에서 server.http2.enabled=를 true로 할당해주면 된다.
-- 추가적으로 해줘야하는 작업은 각 웹서버마다 다르다 (undertow는 https 설정이 되어있으면 추가적인 설정 없이 http2 enable만 true로 할당하면되고, tomcat은 9.X버전과 JDK9 이상을 쓰면 추가적인 설정없이 http2를 적용할 수 있다.)
 
 ### 독립적으로 실행 가능한 JAR 
 - mvn package 를 하면 실행 가능한 JAR 파일 하나가 생성된다. 
@@ -170,17 +129,19 @@ private Connector createStandardConnector() {
     <plugins>
         <plugin>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-maven-plugin</artifactId>	<!-- jar,war 파일로 묶기 위한 spring boot 플러그인 -->
-        </plugin>												<!-- 이 플러그인 덕분에 mvn package 명령어로 전체 앱을 jar,war 파일로 묶을 수 있다.-->
+            <artifactId>spring-boot-maven-plugin</artifactId>	
+        </plugin>												
     </plugins>
 </build>
 ```
+- jar,war 파일로 묶기 위한 spring boot 플러그인.
+- 이 플러그인 덕분에 mvn package 명령어로 전체 앱을 jar,war 파일로 묶을 수 있다.
 	
 - 기본적으로 JAVA에는 내장 JAR를 로딩하는 표준적인 방법이 없다.
 - mvn package를 해서 생성된 JAR를 풀어보면 lib안에 우리가 의존성을 추가하여 사용한 모든 내장 JAR(library)들이 들어가 있다. 
 - org.springframework.boot.loader.jar.JarFile 을 사용해서 내장 JAR를 읽는다. 
 - org.springframework.boot.loader.Launcher 를 사용해서 내장 JAR를 실행한다. 그래서 문제없이 mvn package를 하여 만든 JAR 하나만으로도 실행이 되는것이다. 
--  JAR말고도 WAR와 같은 다른 런처도 존재한다. MENIFEST.MF 파일을 살펴보면 Main-Class가 애플리케이션이 아닌 런처로 지정돼있는 것을 알 수 있다. 해당 런처가 Start-Class인 우리의 애플리케이션을 실행한다.
+- JAR말고도 WAR와 같은 다른 런처도 존재한다. MENIFEST.MF 파일을 살펴보면 Main-Class가 애플리케이션이 아닌 런처로 지정돼있는 것을 알 수 있다. 해당 런처가 Start-Class인 우리의 애플리케이션을 실행한다.
 
 
 SpringApplication 
@@ -257,8 +218,6 @@ public class SampleListener implements ApplicationListener<ApplicationStartingEv
 ```
 - 이를 해결하기 위해서는 코드를 수정해야한다. SpringApplication 인스턴스의 addListeners 메소드를 이용하여 SampleListener를 추가해야한다. 
 SampleListener는 빈으로 등록할 필요가 없고, 메인에서 직접 생성하기 때문에 @Component를 지운다. 앱을 실행해보면 컨텍스트 생성 로그가 출력되기 이전에 SampleListener가 실행된다.
-
-
 
 ```java
 @Component
@@ -341,246 +300,7 @@ public class SampleListener implements CommandLineRunner {
 - Runner를 구현한 빈이 여러 개 존재할 경우 @Order를 이용하여 순서를 지정할 수 있다. 
 - @Order의 value가 낮을수록 우선순위가 높다.
 
-외부설정
--------
-
-### 프로퍼티 우선 순위 
-
-1. 유저 홈 디렉토리에 있는 spring-boot-dev-tools.properties
-
-2. 테스트에 있는 @TestPropertySource
-
-3. @SpringBootTest 애노테이션의 properties 애트리뷰트
-
-4. 커맨드라인 아규먼트
-
-5. SPRING_APPLICATION_JSON (환경 변수 또는 시스템 프로퍼티)에 들어있는 프로퍼티
-
-6. ServletConfig 파라미터
-
-7. ServletContext 파라미터
-
-8. Java:comp/env JNDI 애트리뷰트
-
-9. System.getProperties() 자바 시스템 프로퍼티
-
-10. OS 환경 변수
-
-11. RandomValuePropertySource
-
-12. JAR 밖에 있는 특정 프로파일용 application.properties
-
-13. JAR 안에 있는 특정 프로파일용 application.properties
-
-14. JAR 밖에 있는 application.properties
-
-15. JAR 안에 있는 application.properties
-
-16. @PropertySource
-
-18. 기본 프로퍼티(SpringApplication.setDefaultProperties)
-
-### application.properties 우선 순위(높은게 낮은걸 덮어 쓴다.)
-
-1. file:./config/
-
-2. file:./
-
-3. classpath:/config/
-
-4. classpath:/
-
-### properties에서 랜덤값 설정하기
-- ${random.자료형}
-- server.port의 경우 0을 할당해야 가용범위 안의 포트를 찾아서 맵핑해줌
-
-### 타입-세이프 프로퍼티 @ConfigurationProperties
-- 여러 프로퍼티를 묶어서 읽어올 수 있다.
-- 빈으로 등록해서 다른 빈에 주입할 수 있다.
-    - @EnableConfigurationProperties
-    - @Component 
-    - @Bean
-    - 스프링부트 애플리케이션에서는 @EnableConfigurationProperties가 등록이 되어 있으므로 @ConfigurationProperties가 선언되어있는 클래스에 @Component를 추가하여 빈으로 만들어 주기만 하면 된다.
-    - (최상단 annotation 설명 부분에 @EnableConfigurationProperties, @ConfigurationProperties 설명 되어있음.)
-
-```java
-@Component
-@ConfigurationProperties("tester")
-public class testerProperties {
-    String name;  //tester.name 매칭
-    int age;      //tester.age  매칭
-    ... //getter, setter 생성 --BEAN 규칙에 따른다
-}
-```
-
-- @Value와의 차이 
-
-1. type safe하지 않다.
-    - @Value의 value에 오타를 칠 수도 있다.
-    - 하지만 getter 메소드를 사용함으로써 type safe할 수 있다.
-
-2. Meta-data 지원 여부
-    - 위에서 봤듯이 @ConfigurationProperties은 메타데이터를 지원함으로써
-    - application.properties(or yml)생성시 자동완성을 지원한다.
-
-3. Relaxed binding(융통성 있는 바인딩) 지원 여부
-
-    - 스프링 부트는 @ConfigurationProperties 빈에 `Environment프로퍼티`를 바인딩 할때 융통성 있는(Relaxed) 규칙을 적용해서
-    - Environment프로퍼티 이름과 Bean 프로퍼티 이름이 완벽하게 같지 않아도 된다.
-    - 대소문자 차이(ex : PORT vs port)
-    - dash(-)구분, (ex : context-path vs contextPath)등을 알아서 구분한다.
-    - 다음 4가지는 모두 동일하게 정상 작동하게 된다.
-
-    - context-path : kebab-case (properties,yml에서 사용권장)
-    - context_path : Underscore notation (properties,yml의 다른 포맷)
-    - contextPath : Standard Camel case
-    - CONTEXTPATH : Upper case (시스템 환경 변수에서 권장되는)
-        (@Value는 이걸 지원하지 않는다.)
-
-4. SpEL 지원 여부
-`@ConfigurationProperties`는 SpEL을 지원하지 않는다.
-`@Value`가 SpEL 표현을 지원하지만 프로퍼티 파일에서는 처리되지 않음을 명심하자.
-
-### 프로퍼티 타입 컨버전 
-- @Duration
-- properties에서는 DataType을 적어주진 않지만 컨버전에 의해 잘 매핑된다.
-- 스프링 부트에는 이외에도 스프링 부트만이 제공하는 독특한 컨버전이 존재하는데 그 중 하나가 duration이다.
-- java.time.Duration의 Duration 클래스는 자바 8부터 존재하며 특정시간A와 특정시간 B 사이의 시간 차이를 초나 nano초의 시간의 양으로 모델링 한다.
-
-```java
-@Component
-@ConfigurationProperties("tester")
-public class TesterProperties {
-
-//   내용 스킵
-
-    @DurationUnit(ChronoUnit.SECONDS)
-    private Duration ssessionTimeout = Duration.ofSeconds(30);
-}
-```
-- 이렇게 하면 properties에 ssessionTimeout이 없으면 기본값 30s를 가지게 되며 ssessionTimeout가 있으면 그값으로 주입이 된다.
-
-### 프로퍼티 값 검증 
-- @Validated
-- @ConfigurationProperties 클래스들이 스프링의 @Validated어노테이션이 붙으면 스프링 부트가 데이터 검증(validate)을 시도한다.
-- @NotEmpty 어노테이션을 달아놓으면 null값을 체크해준다. 
-
-```java
-@Component
-@Validated
-@ConfigurationProperties("tester")
-public class TesterProperties {
-    @Size(min = 3, max = 15) ///이름 3~15크기
-    private String name;
-```
-- 값을 properties에 다르게 세팅한 후 
-
-```java
-2018-10-31 15:04:48.380 ERROR 26696 --- [main] o.s.b.d.LoggingFailureAnalysisReporter   :
-
-***************************
-APPLICATION FAILED TO START
-***************************
-
-Description:
-
-Binding to target org.springframework.boot.context.properties.bind.BindException: Failed to bind properties under 'tester' to me.rkaehdaos.TesterProperties failed:
-
-    Property: tester.name
-    Value: G
-    Origin: class path resource [application.properties]:1:13
-    Reason: 반드시 최소값 3과(와) 최대값 15 사이의 크기이어야 합니다.
-```
-
-이와같은 에러메세지가 나오는데 FailureAnalyzer 덕분에 이쁘게 나온다. 
-
-로깅
-----
-
-### 로깅 파사드
-    - Commons Logging (Spring은 Commons Logging을 사용함)
-    - SLF4j
-    - 로깅 파사드는 실제 로깅을 하지 않고, 로거 API들을 추상화 해놓은 인터페이스들이다.
-    - 로깅파사드의 장점은 로거들을 바꿔서 사용할 수 있다는 것이다. 
-
-### 로거
-    - JUL(Java Utility Logging)
-    - Log4j2
-    - Logback
-
-- 스프링부트에서 찍히는 로그는 Commons Logging -> SLF4j2 -> Logback의 흐름을 타고 결국은 Logback이 로그를 찍는다. 
-- spring-boot-starter-logging 의존성을 통해 알 수 있다. 
-
-### 스프링부트 기본 로깅 
-- --debug : 일부 코어 라이브러리(embedded container, Hibernate, Spring Boot)만 디버깅 모드로
-- --trace : 전부 다 디 버깅 모드로
-- 컬러 출력 : spring.output.ansi.enabled=always
-- 파일 출력 : 
-    - logging.file 또는 logging.path
-    - 로그파일은 기본적으로 10M까지 저장되고, 넘치면 아카이빙하는 등 여러가지 설정도 할 수 있다.
-- 로그 레벨 조정 
-    - logging.level.패키지 = 로그 레벨
-
-### 커스텀 로깅 
-- 커스텀 로그 설정 파일 사용하기
-
-- Logback: logback-spring.xml
-    - https://docs.spring.io/spring-boot/docs/current/reference/html/howto-logging.html#howto-configure-logback-for-logging
-
-- Log4J2: log4j2-spring.xml
-- JUL(비추천): logging.properties
-- Logback extension
-- logback-spring.xml을 사용하면 logback.xml을 사용하는 것과 같고, 스프링부트에서 추가로 익스텐션을 사용할 수 있게 제공한다.
-
-- 로거를 Log4j2로 변경하기
-    - https://docs.spring.io/spring-boot/docs/current/reference/html/howto-logging.html#howto-configure-log4j-for-logging
-
-
-테스트
-------
-
-- spring-boot-starter-test 의존성을 추가해준다. 
-
-### @springBootTest
-- @RunWith(SpringRunner.class)와 같이 써야함.
-- 빈 설정은 안해주어도 된다. 알아서 @SpringBootApplication을 찾는다.
-- webEnvironment 
-    - MOCK : WebApplicationContext를 제공하고 가짜 서블릿 환경을 제공함
-    - RANDOM_PORT, DEFINED_PORT : ServletWebServerApplicationContext를 로드하고 진짜 서블릿 환경을 제공함. 내장된 서블릿 컨테이너를 구동하고 random port로 리스닝 한다.
-    - NONE : SpringApplication 을 사용하면서 ApplicationContext 이 로드된다. 그러나 서블릿 환경은 제공되지 않는다.
-
-### MockBean 
-- ApplicationContext에 들어있는 빈을 Mock으로 만든 객체로 교환한다.
-
-    - ex)  
-    ```java
-    @MockBean
-    private UserController userController;
-    ```
-    UserController class를 대신하여 Mock객체로 교체한다. 
-    
-- 모든 @Test 마다 자동으로 리셋.
-
-### 슬라이스 테스트 
-- @DataJpaTest  
-    - SpringBoot에서 JPA만 테스트할 수 있도록 제공하는 어노테이션 
-    - 단위 테스트가 끝날때 마다 자동으로 DB를 롤백시켜준다.
-
-- @WebMvcTest 
-    - Controller를 위한 테스트 어노테이션이다. 
-    - MockMvc를 자동으로 지원하고 있어 별도의 HTTP서버 없이 Controller테스트를 진행할 수 잇다. 
-
-- @JsonTest
-    - 편하게 JSON serialization과 deserialization을 테스트할 수 있다. 
-
-- @RestClientTest
-    - 자신이 서버 입장이 아니라 클라이언트 입장이 되는 코드를 테스트할때 유용하다.
-    - Apache HttpClient나 Spring의 RestTemplate을 사용하여 외부 서버에 웹 요청을 보내는 경우가 있습니다. 
-    - @RestClientTest는 요청에 반응하는 가상의 Mock 서버를 만든다고 생각하면 됩니다.
-
-- @OutputCapture 
-    - System.out, System.err 를 출력하는데 사용할 수 있다. 
-    - @Rule 어노테이션을 사용하여 OutputCapture 객체를 생성한 후 toString()을 사용하여 출력 가능하다. 
+ 
 
 스프링 웹 MVC 
 -------------
@@ -596,7 +316,7 @@ Binding to target org.springframework.boot.context.properties.bind.BindException
 - 일반적으로 spring framework에서는 Spring MVC를 이용해서 컨트롤러에 값을 주고 받을 때는 HTTP 요청 프로퍼티를 분석하여 그에 따라 특정 클래스로 바인딩 되게끔 하고 특정 객체를 Model Object에 집어 넣어 View를 리턴하는 식으로 주고받게 된다.
 - 그러나 메세지 컨버터는 그런 개념이 아니라 HTTP 요청 메세지 본문과 HTTP 응답 메세지 본문을 통째로 하나의 메세지로 보고 이를 처리한다. 
 - Spring MVC에서 이러한 작업을 하는데 사용되는 어노테이션이 바로 @RequestBody와 @ResponseBody이다.
-- @ResponseBody를 이용하여 파라미터를 받으면 HTTP 요청 메세지 본문을 분석하는 것이 아닌 그냥 하나의 통으로 받아서 이를 적절한 클래스 객체로 변환하게 되고 
+- @RequestBody를  이용하여 파라미터를 받으면 HTTP 요청 메세지 본문을 분석하는 것이 아닌 그냥 하나의 통으로 받아서 이를 적절한 클래스 객체로 변환하게 되고 
 - @ResponseBody를 사용하여 특정 값을 리턴하면 View 개념이 아닌 HTTP 응답 메세지에 그 객체를 바로 전달할 수 있다.
 
 ### MessageConverter의 종류
@@ -609,15 +329,26 @@ Binding to target org.springframework.boot.context.properties.bind.BindException
 - MappingJacksonHttpMessageConverter
 - 각 데이터 타입에 맞는 Converter가 사용된다. 
 
+- xml 메시지 컨버터 추가하기 
+```java
+<dependency>    
+    <groupId>​com.fasterxml.jackson.dataformat​</groupId>    
+    <artifactId>​jackson-dataformat-xml​</artifactId>    
+    <version>​2.9.6​</version> 
+</dependency> 
+```
+
 ### ViewResolver
-- 스프링부트에 등록 되어있는 스프링 웹 MVC의 ContentNegotiatingViewResolver 가 어떤 contentType일 때 어떤 응답을 보내고, accept header 요청에 의해서 해당 요청에 맞는 응답을 보내는 작업을 알아서 해준다.
+- ViewResolver : 스프링에서 Controller에서 반환한 값(ModelAndView 혹은 Model)을 통해 뷰를 찾는 역할. 
+- ContentNegotiatingViewResolver : 동일한 URI에서 HTTP Request에 있는 Content-type 및 Accept 헤더를 기준으로 다양한 Content-type으로 응답할 수 있게 하는 ViewResolver.
+- Controller 단에서 따로 json 타입에 대한 정보를 명시하지 않아도 스프링부트에 등록 되어있는 스프링 웹 MVC의 ContentNegotiatingViewResolver를 통해 자동적으로 json형식으로 데이터를 반환하도록 스프링부트에서 제공한다.
+- 이 ViewResolver는 Converter와 연관되어 있어 Content-type을 기준으로 어떤 Converter를 쓸지 결정한다. 
 
-## 정적 리소스 지원 
 
-### 정적 리소스 맵핑 "/**". 루트로 맵핑된다.
+정적 리소스 지원 
+---------------
 
 ### 기본 리소스 위치
-
 - classpath:/static
 - classpath:/public
 - classpath:/resources/
@@ -661,7 +392,6 @@ public class WebConfig implements WebMvcConfigurer {
 <script src="/webjars/jquery/dist/jquery.min.js"></script>
 ```
 
-
 ### index 페이지와 파비콘 
 
 - 스프링 부트의 정적 리소스 4가지 기본 위치중 아무 곳이나 index.html을 두면된다.
@@ -683,28 +413,7 @@ public class WebConfig implements WebMvcConfigurer {
     - 파이콘 만들기: https://favicon.io/
     - 파비콘은 캐시가 되어있으므로, 크롬에서 캐시비우고 새로고침을 하면 확인할 수 있다.
 
-### HtmlUnit
-- HTML 템플릿 뷰 테스트를 보다 전문적으로 할 수있다.
-- http://htmlunit.sourceforge.net/  
-- http://htmlunit.sourceforge.net/gettingStarted.html  (참조)
-- 의존성 추가
-- WebClient로 요청페이지,태그,엘리먼트 등을 가져와 단위테스트를 할 수 있다.  
-```java
-<dependency>    
-<groupId>​org.seleniumhq.selenium​</groupId>    
-<artifactId>​htmlunit-driver​</artifactId>    
-<scope>​test​</scope> 
-</dependency> 
-
-<dependency>    
-<groupId>​net.sourceforge.htmlunit​</groupId>    
-<artifactId>​htmlunit​</artifactId>    
-<scope>​test​</scope> 
-</dependency
-```
-
 ### ExceptionHandler
-
 - 스프링 @MVC 예외 처리 방법
     - @ControllerAdvice
     - @ExchangeHandler
@@ -778,9 +487,6 @@ public class SampleController {
 //이 때 @ExceptionHandler 어노테이션이 해당 예외를 받아서 처리할 수 있음
 //appError 객체에 Exception 관련 정보를 넣고 사용자에게 JSON 형식으로 반환됨
 ```
-
-
-
 
 ### 커스텀 에러 페이지
 
@@ -873,7 +579,6 @@ public class SpringBootTutorialApplicationTests {
 
 // _links는 HATEOAS를 구현하기 위해 스프링 부트에서 생성한 JSON name이다.
 // 그리고 그 뒤의 self는 자기 참조를 뜻하는 것을 JSON을 통해서 나타낸 것이다.
-
 ```
 
 - 소스코드 
@@ -927,92 +632,4 @@ public class SampleController {
 //withSelfRel 메서드를 통해서 해당 URL이 자기 참조인 것을 나타내고 있습니다.
 ```
 
-### CORS((Cross-Origin Resource Sharing)란 
-- HTTP 요청은 기본적으로 Cross-Site HTTP Requests가 가능하다. <img> 태그로 다른 도메인의 이미지파일을 가져오거나, <link>태그로 다른 도메인의 
-css를 가져오거나, <script> 태그로 다른 도메인의 javascript 라이브러리를 가져오는것이 모두 가능하다. 하지만 <script></script>로 둘려싸여 있는 
-스크립트에서 생성된 Cross-Site HTTP Requests는 Same Origin Policy를 적용받기 때문에 Cross-Site HTTP Requests가 불가능하다. 즉 !! 프로토콜,호스트명,포트가 같아야만 요청이 가능한 것이다. 
 
-### SOP (Same Origin Policy) - 동일 출처 정책 
-- SOP란 한 출처에서 로드된 문서나 스크립트가 다른 출처 자원과 상호작용하지 못하도록 제약하는 것을 말한다. 
-
-- CORS는 동일한 출처(Origin: 최초 자원이 서비스된 출처)가 아니여도 다른 출처에서의 자원을 요청하여 쓸 수 있게 허용하는 구조를 뜻한다.
-- 보통 보안 상의 이슈(DOM을 통한 취약한 데이터 접근 시도) 때문에 동일 출처(Single Origin Policy)를 기본적으로 웹에서는 준수한다.
-- 따라서 최초 자원을 요청한 출처 말고 다른 곳으로 스크립트를 통해 자원을 요청하는 것은 금지된다.
-- CORS을 적용하려면 웹 어플리케이션에 그에 따른 처리를 해야하고 스프링 부트에서는 @CrossOrigin 어노테이션 혹은 WebConfig를 통해 CORS를 적용하는 방법을 제공하고있다.
-- AJAX가 널리 사용되면서 <script></script>로 둘러싸여 있는 스크립트에서 생성되는 XMLHttpRequest에 대해서도 Cross-Site HTTP Requests가 가능해야한다는 요구가 늘어나자 W3C에서 CORS라는 권고안이 나오게 되었다. 
-
-- Origin ? 
-    - URI 스키마 (http, https)
-    - hostname(whiteship.me, localhost)
-    - 포트 (8080,18080)
-
-
-### @CrossOrigin 어노테이션으로 적용하는방법
-
-- Client가 될 프로젝트를 따로 생성하고 Port를 8080이외의 포트로 설정해준다. 
-```javascript
-    $(function(){
-        $.ajax("http://localhost:8080/hello")
-            .done(function(msg){
-                alert(msg);
-            })
-            .fail(function(){
-                alert("fail");
-            })
-    })
-```
-- CORS가 적용될 웹 어플리케이션 소스코드 ↓
-
-```java
-@RestController
-public class SampleController {
-
-    @GetMapping("/hello")
-    public String hello(){
-        return "hello";
-    }
-}
-```
-- ajax로 http://localhost:8080/hello에 요청을 하지만 실패하게 된다. 
-
-
-
-- CORS를 적용한 웹 어플리케이션 ↓
-```java
-@RestController
-public class SampleController {
-
-    @CrossOrigin(origins="http://localhost:18080")
-    @GetMapping("/hello")
-    public String hello(){
-        return "hello";
-    }
-}
-```
-- 해당 출처에서 스크립트를 통해 자원을 획득할 수 있도록 허용한다. 
-
-#### WebMvcConfigurer를 상속받아서 설정하는 방법 
-
-```java
-@RestController
-public class SampleController {
-
-    @GetMapping("/hello")
-    public String hello(){
-        return "hello";
-    }
-}
-
-
-@Configuration
-public class WebConfig implements WebMvcConfigurer {
-
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("http://localhost:18080");
-    }
-}
-```
-- java 코드로 WebMvcConfigurer를 상속받는 설정 class파일을 만든 후 addCorsMappings()를 override하여 설정할 수 있다. 
-- WebMvcConfigurer를 사용하면 글로벌 설정이 가능하다.

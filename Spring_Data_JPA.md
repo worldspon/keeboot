@@ -1,7 +1,8 @@
 Spring-Data, JPA 정리 및 Docker
--------------------------------
+===============================
 
-### 인-메모리 데이터베이스 
+인-메모리 데이터베이스 
+--------------------
 
 - 디스크가 아닌 주 메모리에 모든 데이터를 보유하고 있는 데이터베이스.
 - 디스크 검색보다 자료 접근이 훨씬 빠른 것이 큰 장점이다.
@@ -33,7 +34,8 @@ Spring-Data, JPA 정리 및 Docker
     - spring.h2.console.enabled=true만 추가 
     - /h2-console로 접속 (이 path도 바꿀 수 있음)
 
-### DBCP(DataBase Connection Pool)
+DBCP(DataBase Connection Pool)
+-------------------------------
 
 - DBCP
     - DB에 커넥션 객체를 미리 만들어 놓고 그 커넥션이 필요할 때마다 어플리케이션에 할당하는 개념.
@@ -41,7 +43,8 @@ Spring-Data, JPA 정리 및 Docker
     - 커넥션 객체를 만드는 것이 큰 비용을 소비하기 때문에 미리 만들어진 커넥션 정보를 재사용하기 위해 나온 테크닉이다.
     - 스프링 부트에서는 기본적으로 `HikariCP`라는 DBCP를 기본적으로 제공한다. (속도가 가장 빠르다고함)
 
-### DBCP 설정 
+DBCP 설정 
+---------
 
 - DBCP 설정은 애플리케이션 성능에 중요한 영향을 미치므로 신중히 고려해야하는 부분이다.
 - 커넥션 풀의 커넥션 개수를 많이 늘린다고 해서 제대로된 성능이 나오는 것이 아니다. 왜냐하면 커넥션은 CPU 코어의 개수만큼 스레드로 동작하기 때문입니다.
@@ -53,7 +56,8 @@ spring.datasource.hikari.maximum-pool-size=4
 #커넥션 객체의 최대 수를 4개로 설정하겠다.
 ```
 
-## Spring-Data-JPA란
+Spring-Data-JPA란
+-----------------
 
 - ORM은 "관계형 데이터베이스의 구조화된 데이터와 자바와 같은 객체 지향 언어 간의 구조적 불일치를 어떻게 해소할 수 있을까"라는 질문에서 나온 객체-관계 매핑 프레임워크이다.
 - 객체와 릴레이션을 매핑할 때 생기는 다양한 문제들을 해결할 수 있는 솔루션이다.
@@ -61,7 +65,8 @@ spring.datasource.hikari.maximum-pool-size=4
 - 추상화 정도는 Spring-Data-JPA -> JPA -> Hibernate -> Datasource (왼쪽에서 오른쪽으로 갈수록 구체화)
 - 참고로 Hibernate는 ORM 프레임워크이며 DataSource는 스프링과 연결된 MySQL, PostgreSQL 같은 DB를 연결한 인터페이스이다. 
 
-### Spring-Data-JPA 연동 ( + PostgreSQL )
+Spring-Data-JPA 연동 ( + PostgreSQL )
+------------------------------------- 
 
 ### Docker 
 
@@ -140,9 +145,10 @@ spring.datasource.password=pass
 spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true
 ```
 
-### 스프링 부트 데이터베이스 초기화 
+스프링 부트 데이터베이스 초기화 
+-----------------------------
 
-JPA를 사용한 데이터베이스 초기화 
+### JPA를 사용한 데이터베이스 초기화 
 - spring.jpa.hibernate.ddl-auto=  create,create-drop,update,validate,none 옵션을 설정할 수 있다.
     - create : JPA가 DB와 상호작용할 때 기존에 있던 스키마(테이블)을 삭제하고 새로 만듬.
     - create-drop : JPA 종료 시점에 기존에 있었던 테이블을 삭제.
@@ -178,9 +184,10 @@ JPA를 사용한 데이터베이스 초기화
     3. 숫자는 순파적으로(타임스탬프 권장)
     4. 이름은 가능한 서술적으로
 
-### NoSQL 
+NoSQL 
+-----
 
-#### Redis 연동하기 
+### Redis 연동하기 
 - 레디스는 Key-Value 기반인 인메모리 데이터 저장소로서 주로 캐쉬 솔루션으로 쓰이고 있는 오픈 소스 프로젝트이다.
 - 레디스를 이용하게 되면 JVM위에서 동작하지 않고 어떤 데이터를 캐싱할 수 있고,따라서 GC 대상이 되지 않고 그로 인한 오버헤드가 줄어드는 장점이 있다.
 
@@ -222,7 +229,7 @@ public class RedisRunner implements ApplicationRunner {
 - 스프링 부트에서는 RedisTemplate, StringRedisTemplate를 통해 레디스에 쉽게 접근할 수 있다.
 - opsForValue를 통해서 레디스에 Key-Value 기반인 데이터를 캐싱하거나 그 값을 얻어올 수 있다.
 
-#### MongoDB 연동하기 
+### MongoDB 연동하기 
 - 몽고DB는 데이터 객체들이 컬렉션 내부에서 독립된 문서로 저장되는, 문서 모델 기반(Document-Based)으로 하는 NoSQL 데이터베이스이다.
 - 컬렉션이라는 것은 몽고DB에서 용도가 같거나 유사한 문서들을 그룹으로 묶는 것을 말하며 이 컬렉션들은 기존 SQL의 데이터베이스의 테이블처럼 동작한다.
 - 몽고DB의 문서 모델은 JSON 기반 이다. 따라서 유여하게 데이터를 질의,조작할 수 있다.
@@ -293,7 +300,7 @@ public class AppRunner implements ApplicationRunner {
 - test
 - db.accounts.find({})
 
-#### Neo4j 설치 및 연동 
+### Neo4j 설치 및 연동 
 
 - Neo4j : 노드간의 연관관계를 영속화 하는데 유리한 그래프 데이터베이스.
 - 의존성 추가 
