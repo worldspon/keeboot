@@ -819,7 +819,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 ```
 
 #### JpaRunner 테스트 구현
-> EntityManager로 복잡하게 구현했던 Code를 SpringDataJPA를 통해 안정적으로 검증된 Code를 사용하여 간결하게 구현가능  
+> EntityManager로 복잡하게 구현했던 Code를 SpringDataJPA를 통해 안정적으로 검증된 Code를 사용하여 간결하게 구현가능하다.  
 > 생산성, 유지보수성, 코드의 간결함, 간결한 코드로 인해 테스트 작성이 불필요함  
 ```java
 @Component
@@ -835,3 +835,4 @@ public class JpaRunner implements ApplicationRunner {
     }
 }
 ```
+
