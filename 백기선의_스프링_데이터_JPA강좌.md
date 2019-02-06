@@ -1,5 +1,5 @@
 백기선의 스프링 데이터 JPA 강좌
------------------------------
+=============================
 
 
 관계형 데이터베이스와 자바 
@@ -97,155 +97,6 @@ spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true
 엔티티 맵핑 
 ----------
 
-### 영속성 컨텍스트란 : 엔티티를 저장하는 논리적인 저장공간이다. 영속성 컨텍스트는 엔티티 매니저를 생성할 때 같이 만들어 지며 엔티티 매니저를 통해서 영속성 컨텍스트에 접근할 수 있다. 즉, 엔티티 매니저가 하는 어떤 행위는 영속성 컨텍스트에 반영되고 이것이 최종적으로 DB에 반영된다.
-
-#### 특징
-- 식별자 값
-    - 영속성 컨텍스트는 엔티티를 식별자 값으로 구분한다(@Id 애노테이션)
-
-- 데이터베이스와의 관계
-    - 영속성 컨텍스트에 엔티티가 저장된다고 바로 DB에 반영되는 것이 아니라 일반적으로 트랜잭션이 커밋될 때 DB에 반영된다.(flush)
-
-- 영속성 컨텍스트에 엔티티를 관리할 때의 장점
-    - 1차캐시
-    - 동일성 보장 (쉽게말해 싱글톤)
-    - 트랜잭션이 지원되는 지연 쓰기
-    - 변경 감지
-    - 지연 로딩
-
-
-
-출처: https://feco.tistory.com/93?category=195517 [wmJun]
-
-```java
-public class JpaMain {
-    public static void main(String[] args) {
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("jpabook");
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        try {
-            tx.begin();
-            logic(em);
-            tx.commit();
-        } catch(Exception ex) {
-            tx.rollback();
-        } finally {
-            em.close();
-        }
-        emf.close();
-    }
- 
-    private static void logic(EntityManager em) {
-        String id = "2";
-        Member member = new Member();
-        member.setId(id);
-        member.setUsername("yellowh");
-        member.setAge(2);
-        em.persist(member);
-        member.setAge(20);
-    }
-}
-```
-
-#### 생명 주기 
-- new / transient(비영속) : 영속성 컨텍스트완느 관련이 없는상태.
-- managed (영속)          : 영속성 컨텍스트에 저장된 상태.
-- detached (준영속)       : 영속성 컨텍스트에 저장되었다가 분리된 상태.
-- removed (삭제)          : 삭제된 상태.
-
-- 비영속 : 엔티티를 생성만 하고 그 어떠한 작업도 하지 않은 상태를 말한다. em.persist(member); 하기전 
-```java
-Member member = new Member();
-        member.setId(id);
-        member.setUsername("yellowh");
-        member.setAge(2);
-```
-- 영속 : 엔티티를 영속성 컨텍스트에 저장한 상태 (데이터 검색이 가능한 상태)
-```java
-TypedQuery<Member> query = em.createQuery("select m from Member m", Member.class);
-        List<Member> members = query.getResultList();
-        System.out.println(members); 
-```
-- 준영속 : 영속성 컨텍스트가 관리하던 영속상태의 엔티티를 영속성 컨텍스트가 관리하지 않은 상태. 
-- em.detach(); 호출하면 된다.
-
-- 삭제 : 엔티티를 영속성 컨텍스트와 데이터베이스에서 삭제한다. 
-- em.remove(member);
-
-#### 영속성 컨텍스트에서 엔티티 조회 
-- 영속성 컨텍스트 내부에 존재하는 캐시를 1차 캐시라고 하면 영속 상태의 엔티티는 1차 캐시에 저장된다. 
-```java
-String id = "2";
-Member member = new Member();
-member.setId(id);
-member.setUsername("yellowh");
-member.setAge(2);
-em.persist(member);
-```
-- em.persist()를 하면 1차 캐시에 회원 엔티티를 저장한다. 1차 캐시는 자바컬렉션의  Map형태로이며 Key는 식별자값(id)이며 데이터베이스 기본키와 매핑되어 있다. 또한 Value는 데이터를 의미(객체, Member)가 저장된다.
-- em.find(); 조회시에 1차 캐시에 데이터가 없으면 데이터베이스에서 조회를 한다. 이때 1차캐시에도 같이 저장한다. 1차 캐시에 데이터가 존재하면 데이터베이스가 아닌 1차 캐시에서 데이터를 조회한다.
-데이터가 변경되지 않고 같은 데이터를 계속 조회한다면 SQL은 데이터베이스에서 계속 데이터를 가져오지만 JPA는 한번만 데이터베이스에 접근하고 나머지는 1차 캐시에서 가져온다. 또한 1차 캐시에서 가져온 데이터는 '==' 비교 연산자로 비교가 가능하다.
-
-#### 영속성 컨텍스트에 엔티티 등록 
-- 엔티티 매니저는 트랜잭션을 커밋하기 직전까지 데이터베이스에 엔티티를 저장하지 않고 내부 쓰기 지연 저장소에 저장해 둔다.
-- 엔티티를 영속상태로 만들면 동시에 쿼리는 *쓰기지연* 저장소 저장한다. 
-- 그 후에 트랜잭션을 커밋하면 엔티티 매니저는 영속성 컨텍스트를 플러시해서 데이터베이스와 동기화 적업을 진행한다. 
-- 즉 쓰기 지연 저장소에 저장되어 있는 쿼리를 데이터베이스에 전송하여 동기화하게 된다.
-
-#### 영속성 컨텍스트의 엔티티 수정 
-- 엔티티를 영속성 컨텍스트에 저장할 때 최초 상태를 복사(스냅샷)해서 저장한다. 
-- 엔티티 매니저가 플러시를 호출하면 엔티티와 스냅샷을 비교하여 변경된 내용이 있으면 수정 쿼리를 쓰지 지연 저장소에 저장한다. 
-- 이렇듯 영속성 컨텍스트는 변경감지 기능을 가지고 있다.
-- 변경 감지는 영속성 컨텍스트가 관리하는 *영속상태의 엔티티*에만 적용된다.
-
-- *수정전*
-MariaDB [test]> select * from MEMBER;
-+----+---------+------+
-| ID | NAME    | AGE  |
-+----+---------+------+
-| 2  | yellowh |   20 |
-+----+---------+------+
-
-- 수정소스
-```java
-private static void logic(EntityManager em) {
-    Member member = em.find(Member.class, "2");
-    member.setUsername("tistory");
-    member.setAge(27);
-}
-```
-
-- *수정후*
-MariaDB [test]> select * from MEMBER;
-+----+---------+------+
-| ID | NAME    | AGE  |
-+----+---------+------+
-| 2  | tistory |   27 |
-+----+---------+------+
-
-
-#### 영속성 컨텍스트의 엔티티 삭제 
-- 영속성 컨텍스트(1차 캐시, 쓰기지연 저장소)에서 쿼리와 엔티티를 제거하며 데이터베이스에 delete쿼리를 전송한다.
-
-#### flush 
-- 플러시는 영속성 컨텍스트의 변경내용을 데이터베이스에 반영한다.
-- 영속성 컨텍스트 플러시 방법 
-    - em.flush();
-    - 트랜잭션 커밋시 자동으로 플러시 
-    - JPQL쿼리 실행시 자동으로 플러시 
-
-#### 준영속
-- 영속상태의 엔티티가 영속성 컨텍스트에서 분리된 상태. 준영속 상태의 엔티티는 영속성 컨텍스트가 제공하는 기능을 사용할 수 없다.
-
-- 준영속을 만드는 방법
-
-    - em.detach(entity) : 특정 엔티티만 준영속상태로
-    - em.clear() : 영속성 컨텍스트를 완전히 초기화
-    - em.close() : 영속성 컨텍스트 종료 
-
-- 준영속 상태를 영속상태로 변경하는 방법
-    - entity = em.merge(entity);
-
 
 - @Entity 
     - `엔티티`는 객체 세상에서 부르는 이름. 
@@ -281,8 +132,6 @@ MariaDB [test]> select * from MEMBER;
         
     - SEQUENCE : 데이터베이스의 특별한 오브젝트 시퀀스를 사용하여 기본키를 생성한다.
         - 시퀀스 생성해주기 : @SequenceGenerator(name="USER_SEQ_GEN", //시퀀스 제너레이터 이름 sequenceName="USER_SEQ", //시퀀스 이름 initialValue=1, //시작값 allocationSize=1 //메모리를 통해 할당할 범위 사이즈)
-
-출처: https://dololak.tistory.com/479 [코끼리를 냉장고에 넣는 방법]
 
 - SEQUENCE 기본 (정리)
     - 순차적인 숫자 발생기
@@ -357,5 +206,632 @@ private Address address;
     - ManyToMany 양방향 관계는 양쪽 중 아무나 OWNER가 될 수 있다.
 
 
+영속성 컨텍스트란/ 엔티티 상태와 Cascade
+--------------------------------------
+
+### 영속성 컨텍스트란 : 엔티티를 저장하는 논리적인 저장공간이다. 영속성 컨텍스트는 엔티티 매니저를 생성할 때 같이 만들어 지며 엔티티 매니저를 통해서 영속성 컨텍스트에 접근할 수 있다. 즉, 엔티티 매니저가 하는 어떤 행위는 영속성 컨텍스트에 반영되고 이것이 최종적으로 DB에 반영된다.
+
+#### 특징
+- 식별자 값
+    - 영속성 컨텍스트는 엔티티를 식별자 값으로 구분한다(@Id 애노테이션)
+
+- 데이터베이스와의 관계
+    - 영속성 컨텍스트에 엔티티가 저장된다고 바로 DB에 반영되는 것이 아니라 일반적으로 트랜잭션이 커밋될 때 DB에 반영된다.(flush)
+
+- 영속성 컨텍스트에 엔티티를 관리할 때의 장점
+    - 1차캐시
+    - 동일성 보장 (쉽게말해 싱글톤)
+    - 트랜잭션이 지원되는 지연 쓰기
+    - 변경 감지
+    - 지연 로딩
+
+```java
+public class JpaMain {
+    public static void main(String[] args) {
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("jpabook");
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            logic(em);
+            tx.commit();
+        } catch(Exception ex) {
+            tx.rollback();
+        } finally {
+            em.close();
+        }
+        emf.close();
+    }
+ 
+    private static void logic(EntityManager em) {
+        String id = "2";
+        Member member = new Member();
+        member.setId(id);
+        member.setUsername("yellowh");
+        member.setAge(2);
+        em.persist(member);
+        member.setAge(20);
+    }
+}
+```
+
+#### 생명 주기 
+- new / transient(비영속) : 영속성 컨텍스트와는 관련이 없는상태.
+- managed (영속)          : 영속성 컨텍스트에 저장된 상태.
+- detached (준영속)       : 영속성 컨텍스트에 저장되었다가 분리된 상태.
+- removed (삭제)          : 삭제된 상태.
+- 비영속                  : 엔티티를 생성만 하고 그 어떠한 작업도 하지 않은 상태를 말한다. em.persist(member); 하기전 
+
+```java
+Member member = new Member();
+        member.setId(id);
+        member.setUsername("yellowh");
+        member.setAge(2);
+```
+- 영속 : 엔티티를 영속성 컨텍스트에 저장한 상태 (데이터 검색이 가능한 상태)
+```java
+TypedQuery<Member> query = em.createQuery("select m from Member m", Member.class);
+        List<Member> members = query.getResultList();
+        System.out.println(members); 
+```
+- 준영속 : 영속성 컨텍스트가 관리하던 영속상태의 엔티티를 영속성 컨텍스트가 관리하지 않은 상태. 
+- em.detach(); 호출하면 된다.
+
+- 삭제 : 엔티티를 영속성 컨텍스트와 데이터베이스에서 삭제한다. 
+- em.remove(member);
+
+#### 영속성 컨텍스트에서 엔티티 조회 
+- 영속성 컨텍스트 내부에 존재하는 캐시를 1차 캐시라고 하면 영속 상태의 엔티티는 1차 캐시에 저장된다. 
+```java
+String id = "2";
+Member member = new Member();
+member.setId(id);
+member.setUsername("yellowh");
+member.setAge(2);
+em.persist(member);
+```
+- em.persist()를 하면 1차 캐시에 회원 엔티티를 저장한다. 1차 캐시는 자바컬렉션의  Map형태로이며 Key는 식별자값(id)이며 데이터베이스 기본키와 매핑되어 있다. 또한 Value는 데이터를 의미(객체, Member)가 저장된다.
+- em.find(); 조회시에 1차 캐시에 데이터가 없으면 데이터베이스에서 조회를 한다. 이때 1차캐시에도 같이 저장한다. 1차 캐시에 데이터가 존재하면 데이터베이스가 아닌 1차 캐시에서 데이터를 조회한다.
+- 데이터가 변경되지 않고 같은 데이터를 계속 조회한다면 SQL은 데이터베이스에서 계속 데이터를 가져오지만 JPA는 한번만 데이터베이스에 접근하고 나머지는 1차 캐시에서 가져온다. 또한 1차 캐시에서 가져온 데이터는 '==' 비교 연산자로 비교가 가능하다.
+
+#### 영속성 컨텍스트에 엔티티 등록 
+- 엔티티 매니저는 트랜잭션을 커밋하기 직전까지 데이터베이스에 엔티티를 저장하지 않고 내부 쓰기 지연 저장소에 저장해 둔다.
+- 엔티티를 영속상태로 만들면 동시에 쿼리는 *쓰기지연* 저장소 저장한다. 
+- 그 후에 트랜잭션을 커밋하면 엔티티 매니저는 영속성 컨텍스트를 플러시해서 데이터베이스와 동기화 적업을 진행한다. 
+- 즉 쓰기 지연 저장소에 저장되어 있는 쿼리를 데이터베이스에 전송하여 동기화하게 된다.
+
+#### 영속성 컨텍스트의 엔티티 수정 
+- 엔티티를 영속성 컨텍스트에 저장할 때 최초 상태를 복사(스냅샷)해서 저장한다. 
+- 엔티티 매니저가 플러시를 호출하면 엔티티와 스냅샷을 비교하여 변경된 내용이 있으면 수정 쿼리를 쓰지 지연 저장소에 저장한다. 
+- 이렇듯 영속성 컨텍스트는 변경감지 기능을 가지고 있다.
+- 변경 감지는 영속성 컨텍스트가 관리하는 *영속상태의 엔티티*에만 적용된다.
+
+- *수정전*
+MariaDB [test]> select * from MEMBER;
++----+---------+------+
+| ID | NAME    | AGE  |
++----+---------+------+
+| 2  | yellowh |   20 |
++----+---------+------+
+
+- 수정소스
+```java
+private static void logic(EntityManager em) {
+    Member member = em.find(Member.class, "2");
+    member.setUsername("tistory");
+    member.setAge(27);
+}
+```
+
+- *수정후*
+MariaDB [test]> select * from MEMBER;
++----+---------+------+
+| ID | NAME    | AGE  |
++----+---------+------+
+| 2  | tistory |   27 |
++----+---------+------+
 
 
+#### 영속성 컨텍스트의 엔티티 삭제 
+- 영속성 컨텍스트(1차 캐시, 쓰기지연 저장소)에서 쿼리와 엔티티를 제거하며 데이터베이스에 delete쿼리를 전송한다.
+
+#### flush 
+- 플러시는 영속성 컨텍스트의 변경내용을 데이터베이스에 반영한다.
+- 영속성 컨텍스트 플러시 방법 
+    - em.flush();
+    - 트랜잭션 커밋시 자동으로 플러시 
+    - JPQL쿼리 실행시 자동으로 플러시 
+
+#### 준영속
+- 영속상태의 엔티티가 영속성 컨텍스트에서 분리된 상태. 준영속 상태의 엔티티는 영속성 컨텍스트가 제공하는 기능을 사용할 수 없다.
+
+- 준영속을 만드는 방법
+
+    - em.detach(entity) : 특정 엔티티만 준영속상태로
+    - em.clear() : 영속성 컨텍스트를 완전히 초기화
+    - em.close() : 영속성 컨텍스트 종료 
+
+- 준영속 상태를 영속상태로 변경하는 방법
+    - entity = em.merge(entity);
+
+### 엔티티 상태 
+
+#### Transient: JPA가 모르는 상태
+- 데이터베이스에 들어갈지 안들어갈지도 전혀 모르는 상태
+```java
+new Object() //Acount 객체를 선언해놓고  set() 메소드로 set만 해놓은 상태 
+```
+
+#### Persistent: JPA가 관리중인 상태
+- Persistent 상태가 됐다고 바로 Insert가 발생해서 데이터베이스에 저장하지 않음
+- Persistent 에서 관리하고 있던 객체가 데이터베이스에 넣는 시점에 데이터를 저장함
+```java
+Session.save(), Session.get(), Session.load(), Query.iterate() ...
+Session.update(), Session.merge(), Session.saveOrUpdate()
+```
+
+- 1차 캐시: Persistent Context(EntityManager, Session)에 인스턴스를 넣은 것
+    - 아직 저장이 되지 않은 상태에서 다시 인스턴스를 달라고 하면 이미 객체가 있으므로 데이터베이스에 가지 않고 캐시하고 있는 것을 줌
+
+- Dirty Checking: 이 객체의 변경사항을 계속 감지
+- Write Behind: 객체의 상태의 변화를 데이터베이스에 최대한 늦게 가장 필요한 시점에 적용을 함
+    - 원래 가지고 있던 객체의 값과 동일한경우 변경사항을 적용하지 않음
+
+#### Detached: JPA가 더이상 관리하지 않는 상태
+- Transaction 이 끝났을 때, 이미 데이터베이스에 저장이되고 Session이 끝난 상태
+```java
+Session.evict(), Session.clear(), Session.close()
+```
+
+#### Removed: JPA가 관리하긴 하지만 삭제하기로 한 상태
+```java
+Session.delete()
+```
+
+cascade 
+-------
+- 엔티티의 상태변화를 전파시키는 옵션.
+- 영속성 전이라는 것은 연관관계를 맺은 엔티티들도 함께 준영속 혹은 비영속상태에서 영속상태로 만들어 CRUD작업이 가능하도록 하는 것이다.
+- 부모 엔티티를 저장할 때 연관된 자식 엔티티도 함께 저장할 수 있다. 또는 부모 엔티티를 삭제하면 연관된 자식 엔티티도 데이터도 삭제할 수 있다.
+
+- cascade 옵션 종류 
+
+    - ALL : 모두 적용 
+    - PERSIST : 영속
+    - MERGE : 병합 
+    - REMOVE : 삭제 
+    - REFRESH : REFRESH 
+    - DETACH : DETACH 
+
+
+#### cascade상태 테스트 
+- 1차 캐쉬에 저장된 인스턴스 가져오는 테스트
+
+```java
+@Component
+@Transactional
+public class JpaRunner implements ApplicationRunner {
+
+    @PersistenceContext
+    EntityManager entityManager;
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        /** Transient 상태 **/
+        Account account = new Account();
+        account.setUsername("freelife");
+        account.setPassword("hibernate");
+
+        Study study = new Study();
+        study.setName("Spring Data JPA");
+
+        account.addStudy(study);
+
+        /** Persistent 상태 **/
+        session.save(account);
+        session.save(study);
+
+        // 데이터베이스에 가지 않고 이미 1차 캐쉬에 저장된 인스턴스를 가져옴 
+        Account freelife = session.load(Account.class, account.getId());
+        freelife.setUsername("ironman");
+        System.out.println("=====================");
+        System.out.println(freelife.getUsername());
+    }
+}
+```
+
+#### 데이터 변경이 일어 나지 않는 테스트
+- 여러번 적용해서 마지막에 데이터가 1차캐시의 객체 값과 같다면 데이터를 변경하지 않는다
+```java
+Account freelife = session.load(Account.class, account.getId());
+freelife.setUsername("ironman");
+freelife.setUsername("superman");
+freelife.setUsername("freelife");
+System.out.println("=====================");
+System.out.println(freelife.getUsername());  // update 쿼리가 발생하지 않는다. 
+                                            // Username이 1차캐시의 객체 값과 같기 때문이다. 
+```
+
+### Parent 와 Child 예시
+
+### Cascade를 적용하지 않은 테스트
+
+#### Parent인 Post 클래스 생성
+```java
+@Entity
+public class Post {
+
+    @Id @GeneratedValue
+    private Long id;
+    private String title;
+
+    @OneToMany(mappedBy = "post")
+    private Set<Comment> comments = new HashSet<>();
+    public void addComment(Comment comment) {
+        this.getComments().add(comment);
+        comment.setPost(this);
+    }
+}
+```
+
+#### Child인 Comment 클래스 생성
+```java
+@Entity
+public class Comment {
+
+    @Id @GeneratedValue
+    private Long id;
+    private String comment;
+
+    @ManyToOne
+    private Post post;
+}
+```
+#### JpaRunner에 post 데이터 저장 테스트
+- Cascade를 적용하지 않으면 post만 저장되고 comment에 전파되지 않는다
+
+```java
+@Component
+@Transactional
+public class JpaRunner implements ApplicationRunner {
+
+    @PersistenceContext
+    EntityManager entityManager;
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        Post post = new Post();
+        post.setTitle("Spring Data JPA 언제 보나...");
+
+        Comment comment = new Comment();
+        comment.setComment("빨리 보고 싶엉.");
+        post.addComment(comment);
+
+        Comment comment1 = new Comment();
+        comment1.setComment("곧 보여드릴께요.");
+        post.addComment(comment1);
+
+        Session session = entityManager.unwrap(Session.class);
+        session.save(post);
+    }
+}
+```
+
+#### Cascade를 적용한 테스트
+    - Post에 cascade = CascadeType.PERSIST 옵션 적용
+    - Post를 저장할 때 저장하는 Persistent를 comments에 전파
+    - post 라는 인스턴스가 Transient에서 Persistent 상태로 넘어갈때
+    - Child에 연관관계에 있어 참조하고 있던 객체들도 같이 Persistent 상태가 되면서 같이 저장이 됨
+
+```java
+@OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST)
+private Set<Comment> comments = new HashSet<>();
+public void addComment(Comment comment) {
+    this.getComments().add(comment);
+    comment.setPost(this);
+}
+Cascade Persistent와 Removed를 적용한 테스트
+Post에 cascade = {CascadeType.PERSIST, CascadeType.REMOVE}) 옵션 적용
+@OneToMany(mappedBy = "post", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+private Set<Comment> comments = new HashSet<>();
+public void addComment(Comment comment) {
+    this.getComments().add(comment);
+    comment.setPost(this);
+}
+```
+#### Post 삭제 테스트
+    - post의 1에 해당되는 것을 가져와 삭제해달라고 하면
+    - delete를 호출하는 순간 Removed 상태가 되고 Removed 상태가 전파되어 comment들도 같이 Removed 상태가 된다음
+    - Transaction이 Commit이 일어날때 데이터가 모두 Remove 됨
+```java
+@Component
+@Transactional
+public class JpaRunner implements ApplicationRunner {
+
+    @PersistenceContext
+    EntityManager entityManager;
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        Session session = entityManager.unwrap(Session.class);
+        Post post = session.get(Post.class, 1l);
+        session.delete(post);
+    }
+}
+```
+
+#### 일반적인 Cascade 옵션 설정
+- 보통은 아래와 같이 cascade = CascadeType.ALL 로 주어서 다 전파하면 됨
+```java
+@OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+private Set<Comment> comments = new HashSet<>();
+public void addComment(Comment comment) {
+    this.getComments().add(comment);
+    comment.setPost(this);
+}
+```
+
+Fectch
+-------
+
+### Fetch
+- 연관 관계의 엔티티의 정보를 지금(Eager) 나중에(Lazy) 가져올지 설정한다.
+- 잘 조정해야 성능을 향상시킬 수 있음
+
+- @OneToMany의 기본값은 Lazy:
+    - 기본적으로 해당 Entity의 정보를 가져올때 Lazy가 적용된 @OneToMany 관계의 Entity의 정보를 가져오지는 않음
+    - 얼마나 많이 있을 지도 모르고 사용하지도 않을 값들을 다 가져오면 객체에 불필요한 정보를 로딩할 수도 있으므로
+
+- @ManyToOne의 기본값은 Eager: 
+    - 해당 Entity의 정보를 가져올때 Eager로 설정된 @ManyToOne 관계의 Entity의 정보도 같이 가져옴
+
+#### Eager 테스트
+- EAGER가 적용된 Entity 정보를 미리 다 가져와서 불필요한 조회를 더이상 하지 않음
+
+- Account 클래스의 studies에 EAGER 를 적용
+```java
+@OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+private Set<Study> studies = new HashSet<>();
+```
+- JpaRunner 에서 테스트
+```java
+Session session = entityManager.unwrap(Session.class);
+Post post = session.get(Post.class, 4l);
+System.out.println("========================");
+System.out.println(post.getTitle());
+```
+
+#### Lazy 테스트
+- Lazy가 적용된 Entity 정보를 미리 가져 오지 않음
+
+- Account 클래스의 studies에 LAZY를 적용
+```java
+@OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
+private Set<Study> studies = new HashSet<>();
+```
+
+- n+1 테스트
+- 재현되지 않음
+- fetch에 Lazy 옵션이 적용되어 있더라도 n에 해당되는 것을 한번에 다가져와서 처리하므로 재현되지 않음
+- Hibernate의 기능 개선으로 성능상의 이슈가 크게 없을 것으로 보임
+- 너무 많은 데이터를 객체에 로딩하는 문제는 있을 수 있음
+
+- EAGER 테스트
+```java
+Session session = entityManager.unwrap(Session.class);
+Post post = session.get(Post.class, 4l);
+System.out.println("========================");
+System.out.println(post.getTitle());
+
+post.getComments().forEach(c -> {
+    System.out.println("--------------");
+    System.out.println(c.getComment());
+});
+```
+
+#### Hibernate
+- load: 가져오려 할때 없으면 예외를 던짐 Proxy로도 가져올 수 있음
+- get: 무조건 DB에서 가져옴 해당하는게 없으면 예외를 던지지 않고 무조건 레퍼런스를 null로 만듬
+
+
+Query
+-----
+> JPA, Hibernate를 사용할 때는 항상 무슨 Query를 발생시키는지 그게 의도한 것인지 확인해야된다.
+
+### JPQL (HQL)
+- Java Persistence Query Language / Hibernate Query Language
+- 데이터베이스 테이블이 아닌, 엔티티 객체 모델 기반으로 쿼리 작성
+- JPA 또는 하이버네이트가 해당 쿼리를 SQL로 변환해서 실행함
+- https://docs.jboss.org/hibernate/orm/5.2/userguide/html_single/Hibernate_User_Guide.html#hql
+
+#### JPQL 예시
+> Post는 테이블 이름이 아니라 Entity 이름  
+> JPA 2.0 부터는 Type을 지정할 수 있고 지정한 Type의 리스트로 출력이 됨  
+> 이전에는 Object Type으로 나와서 다 변환해줘야됐었음  
+
+#### Post에 title toString 추가
+> toString()에 comment(자식 엔티티) 까지 출력하도록 하면 하이버네이트가 comment에 대한 쿼리까지 발생시킨다. (주의)
+```java
+@Override
+public String toString() {
+    return "Post{" +
+            "title='" + title + '\'' +
+            '}';
+}
+```
+
+#### JpaRunner에서 테스트 로직 구현
+```java
+TypedQuery<Post> query = entityManager.​createQuery​("SELECT p FROM Post As p", Post.class);
+List<Post> posts = query.getResultList();
+posts.forEach(System.out::println); //메소드 레퍼런스 람다식을 더 줄여준다.
+```
+
+### Criteria
+https://docs.jboss.org/hibernate/orm/5.2/userguide/html_single/Hibernate_User_Guide.html#criteria
+#### 타입 세이프 쿼리
+```java
+CriteriaBuilder builder = entityManager.​getCriteriaBuilder​();
+CriteriaQuery<Post> criteria = builder.createQuery(Post.class);
+Root<Post> root = criteria.from(Post.class);
+criteria.select(root);
+List<Post> posts = entityManager.​createQuery​(criteria).getResultList();
+```
+
+## Native Query
+https://docs.jboss.org/hibernate/orm/5.2/userguide/html_single/Hibernate_User_Guide.html#sql
+> Typed 메서드가 아니더라도 지정한 Type으로 결과값을 리턴해줌  
+#### SQL 쿼리 실행하기
+```java
+List<Post> posts = entityManager
+                .createNativeQuery("SELECT * FROM Post", Post.class)
+                .getResultList();
+```
+
+
+스프링 데이터 JPA 소개 및 원리
+=============================
+
+## JpaRepository<Entity, Id> 인터페이스
+- 매직 인터페이스
+- @Repository가 없어도 빈으로 등록해 줌
+
+## @EnableJpaRepositories
+- 매직의 시작은 여기서 부터
+
+## 매직은 어떻게 이뤄지나?
+> JpaRepository 로 구현한 Repository가 어떻게 자동으로 빈으로 등록됐는지는 아래의 클래스에서 확인  
+- 시작은 @Import(​JpaRepositoriesRegistrar.class​)
+- 핵심은 ​ImportBeanDefinitionRegistrar​ 인터페이스
+  - SpringFrameWork의 인터페이스이며 구현체가 다양함
+  - 빈을 프로그래밍을 통해서 등록할 수 있게 해줌
+  - JpaRepository를 상속받은 모든 인터페이스들을 찾아서 빈으로 등록해줌
+
+### ​ImportBeanDefinitionRegistrar​ 예제
+> Freelife를 빈으로 등록하는 예제  
+
+#### Freelife 클래스 구현
+```java
+public class Freelife {
+
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+```
+
+#### FreelifeRegistrar 클래스 구현
+> 빈으로 등록하는 프로그래밍 과정  
+```java
+public class FreelifeRegistrar implements ImportBeanDefinitionRegistrar {
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+        GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+        beanDefinition.setBeanClass(Freelife.class);
+        beanDefinition.getPropertyValues().add("name", "Superman");
+
+        registry.registerBeanDefinition("freelife", beanDefinition);
+    }
+}
+```
+
+#### @Import 설정
+> 최종적으로 아래와 같이 설정하면 프로그래밍에 의해서 자동으로 빈으로 등록됨  
+```java
+@SpringBootApplication
+@Import(FreelifeRegistrar.class)
+public class Application {
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+
+}
+```
+
+#### 등록된 빈을 주입받아서 출력 테스트
+```java
+@Component
+@Transactional
+public class JpaRunner implements ApplicationRunner {
+
+    @Autowired
+    Freelife freelife;
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        System.out.println("=====================");
+        System.out.println(freelife.getName());
+    }
+}
+```
+
+### 예전 방식
+> 코드도 작성하고 테스트도 해야되고 매우 번거로움  
+```java
+@Repository
+@Transactional
+public class PostRepository {
+
+    @PersistenceContext
+    EntityManager entityManager;
+
+    public Post add(Post post) {
+        entityManager.persist(post);
+        return post;
+    }
+
+    public void delete(Post post) {
+        entityManager.remove(post);
+    }
+
+    public List<Post> findAll() {
+        return entityManager.createQuery("SELECT p FROM Post AS p", Post.class)
+                .getResultList();
+    }
+}
+```
+
+#### 예전 정의 방식
+> 예전에는 기본적인 코드들은 만들어서 정의해서 사용하는 프레임워크가 유행했었음
+```java
+@Repository
+public class PostRepository extends GenericRepository<Post, Long> {
+
+}
+```
+
+### 현재의 방식
+> PostRepository 라는 interface를 만들고 JpaRepository라는 interface를 상속받음  
+> JpaRepository 첫번째 타입은 Entity 타입이고 두번째 타입은 Entity에서 사용하는 PK의 Type  
+> @EnableJpaRepositories 는 스프링부트가 자동 설정해줌  
+> 아래와 같이 구현하면 @Repository를 지정할 필요없이 빈으로 등록됨  
+#### PostRepository 인터페이스 구현
+```java
+public interface PostRepository extends JpaRepository<Post, Long> {
+}
+```
+
+#### JpaRunner 테스트 구현
+> EntityManager로 복잡하게 구현했던 Code를 SpringDataJPA를 통해 안정적으로 검증된 Code를 사용하여 간결하게 구현가능  
+> 생산성, 유지보수성, 코드의 간결함, 간결한 코드로 인해 테스트 작성이 불필요함  
+```java
+@Component
+@Transactional
+public class JpaRunner implements ApplicationRunner {
+
+    @Autowired
+    PostRepository postRepository;
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        postRepository.findAll().forEach(System.out::println);
+    }
+}
+```
