@@ -240,22 +240,22 @@ Session.save(), Session.get(), Session.load(), Query.iterate() ...
 Session.update(), Session.merge(), Session.saveOrUpdate()
 ```
 - **영속성 컨텍스트에서 엔티티 조회**
-> 영속성 컨텍스트 내부에 존재하는 캐시를 1차 캐시라고 하면 영속 상태의 엔티티는 1차 캐시에 저장된다. 
-> 1차 캐시는 자바컬렉션의  Map형태로이며 Key는 식별자값(id)이며 데이터베이스 기본키와 매핑되어 있다. 또한 Value는 데이터를 의미(객체, Member)가 저장된다.
-> 조회시에 1차 캐시에 데이터가 없으면 데이터베이스에서 조회를 한다. 이때 1차캐시에도 같이 저장한다. 1차 캐시에 데이터가 존재하면 데이터베이스가 아닌 1차 캐시에서 데이터를 조회한다.
-> 데이터가 변경되지 않고 같은 데이터를 계속 조회한다면 SQL은 데이터베이스에서 계속 데이터를 가져오지만 JPA는 한번만 데이터베이스에 접근하고 나머지는 1차 캐시에서 가져온다. 또한 1차 캐시에서 가져온 데이터는 '==' 비교 연산자로 비교가 가능하다.
+    - 영속성 컨텍스트 내부에 존재하는 캐시를 1차 캐시라고 하면 영속 상태의 엔티티는 1차 캐시에 저장된다. 
+    - 1차 캐시는 자바컬렉션의  Map형태로이며 Key는 식별자값(id)이며 데이터베이스 기본키와 매핑되어 있다. 또한 Value는 데이터를 의미(객체, Member)가 저장된다.
+    - 조회시에 1차 캐시에 데이터가 없으면 데이터베이스에서 조회를 한다. 이때 1차캐시에도 같이 저장한다. 1차 캐시에 데이터가 존재하면 데이터베이스가 아닌 1차 캐시에서 데이터를 조회한다.
+    - 데이터가 변경되지 않고 같은 데이터를 계속 조회한다면 SQL은 데이터베이스에서 계속 데이터를 가져오지만 JPA는 한번만 데이터베이스에 접근하고 나머지는 1차 캐시에서 가져온다. 또한 1차 캐시에서 가져온 데이터는 '==' 비교 연산자로 비교가 가능하다.
 
 - **영속성 컨텍스트에 엔티티 등록**
-> 엔티티 매니저는 트랜잭션을 커밋하기 직전까지 데이터베이스에 엔티티를 저장하지 않고 내부 쓰기 지연 저장소에 저장해 둔다.
-> 엔티티를 영속상태로 만들면 동시에 쿼리는 **쓰기지연** 저장소 저장한다. 
-> 그 후에 트랜잭션을 커밋하면 엔티티 매니저는 영속성 컨텍스트를 플러시해서 데이터베이스와 동기화 적업을 진행한다. 
-> 즉 쓰기 지연 저장소에 저장되어 있는 쿼리를 데이터베이스에 전송하여 동기화하게 된다.
+    - 엔티티 매니저는 트랜잭션을 커밋하기 직전까지 데이터베이스에 엔티티를 저장하지 않고 내부 쓰기 지연 저장소에 저장해 둔다.
+    - 엔티티를 영속상태로 만들면 동시에 쿼리는 **쓰기지연** 저장소 저장한다. 
+    - 그 후에 트랜잭션을 커밋하면 엔티티 매니저는 영속성 컨텍스트를 플러시해서 데이터베이스와 동기화 적업을 진행한다. 
+    - 즉 쓰기 지연 저장소에 저장되어 있는 쿼리를 데이터베이스에 전송하여 동기화하게 된다.
 
 - **영속성 컨텍스트의 엔티티 수정**
-> 엔티티를 영속성 컨텍스트에 저장할 때 최초 상태를 복사(스냅샷)해서 저장한다. 
-> 엔티티 매니저가 플러시를 호출하면 엔티티와 스냅샷을 비교하여 변경된 내용이 있으면 수정 쿼리를 쓰지 지연 저장소에 저장한다. 
-> 이렇듯 영속성 컨텍스트는 변경감지 기능을 가지고 있다.
-> 변경 감지는 영속성 컨텍스트가 관리하는 **영속상태의 엔티티**에만 적용된다.
+    - 엔티티를 영속성 컨텍스트에 저장할 때 최초 상태를 복사(스냅샷)해서 저장한다. 
+    - 엔티티 매니저가 플러시를 호출하면 엔티티와 스냅샷을 비교하여 변경된 내용이 있으면 수정 쿼리를 쓰지 지연 저장소에 저장한다. 
+    - 영속성 컨텍스트는 변경감지 기능을 가지고 있다.
+    - 변경 감지는 영속성 컨텍스트가 관리하는 **영속상태의 엔티티**에만 적용된다.
 
 - **1차 캐시**: Persistent Context(EntityManager, Session)에 인스턴스를 넣은 것
 > 아직 저장이 되지 않은 상태에서 다시 인스턴스를 달라고 하면 이미 객체가 있으므로 데이터베이스에 가지 않고 캐시하고 있는 것을 줌
@@ -728,3 +728,224 @@ public class JpaRunner implements ApplicationRunner {
 }
 ```
 
+# 스프링 데이터 Common: Repository 
+  
+## 스프링 데이터 Common
+- Repository: Marker 용
+- CrudRepository: 기본적인 CRUD 오퍼레이션들을 제공
+- PagingAndSortingRepository
+
+## @NoRepositoryBean
+> 스프링 데이터 JPA 또는 스프링 데이터 다른 저장소용 Repository가 적용된 빈의 실제 빈을 만들지 않도록  
+> 방지하기 위하여 CrudRepository에 적용함  
+
+## JPA 슬라이싱 테스트
+### @DataJpaTest
+> 스프링 부트에서 제공하는 데이터 엑세스 레이어만 테스트 하는 애노테이션  
+> Repository 관련된 빈들만 등록됨  
+
+### 테스트 실습
+> h2는 기본적으로 @Transactional 이 붙어있으면 모든 테스트는 Rollback을 함  
+> hibernate는 필요할때만 데이터베이스에 Query를 Sync하는데 Rollback한 Query라서 데이터를 Insert하지 않음  
+> 결론적으로 ID 만 가져오고 Insert Query를 날리지 않고 끝냄  
+#### Rollback 되는 테스트
+```java
+@RunWith(SpringRunner.class)
+@DataJpaTest
+public class PostRepositoryTest {
+
+    @Autowired
+    PostRepository postRepository;
+
+    @Test
+    public void crudRepository() {
+        // Given - 이런 조건 하에서
+        Post post = new Post();
+        post.setTitle("hello spring boot common");
+        assertThat(post.getId()).isNull();
+
+        // When - 이렇게 했을때
+        Post newPost = postRepository.save(post);
+
+        // Then - 이렇게 되길 바란다
+        assertThat(newPost.getId()).isNotNull();
+    }
+}
+```
+
+#### Rollback이 되지 않도록 @Rollback(false) 로 지정
+- newPost가 PersistenceContext에 들어가고 findAll은 Query를 만들어서 실행하니까 실제 Query가 날아감  
+- 내가 PersistenceContext에 가지고 있는 객체가 데이터베이스의 전체 데이터라는 보장은 없으니까 Query를 보냄  
+- page는 `page`라는 도메인으로 나옴 요청시에는 `pageable` 이라는 Parameter로 요청해야함  
+```java
+@RunWith(SpringRunner.class)
+@DataJpaTest
+public class PostRepositoryTest {
+
+    @Autowired
+    PostRepository postRepository;
+
+    @Test
+    @Rollback(false)
+    public void crudRepository() {
+        // Given - 이런 조건 하에서
+        Post post = new Post();
+        post.setTitle("hello spring boot common");
+        assertThat(post.getId()).isNull();
+
+        // When - 이렇게 했을때
+        Post newPost = postRepository.save(post);
+
+        // Then - 이렇게 되길 바란다
+        assertThat(newPost.getId()).isNotNull();
+
+        // when
+        List<Post> posts = postRepository.findAll();
+
+        // Then
+        assertThat(posts.size()).isEqualTo(1);
+        assertThat(posts).contains(newPost); // newPost 인스턴스를 posts 컬렉션이 가지고 있어야 된다
+
+        // When - 0페이지 부터 10개의 페이지를 달라고 요청
+        Page<Post> page = postRepository.findAll(PageRequest.of(0, 10));
+        assertThat(page.getTotalElements()).isEqualTo(1); // 전체 페이지 개수
+        assertThat(page.getNumber()).isEqualTo(0); // 현재 페이지 넘버
+        assertThat(page.getSize()).isEqualTo(10); // 요청했던 사이즈
+        assertThat(page.getNumberOfElements()).isEqualTo(1); // 현재 페이지에 들어올 수있는 개수
+    }
+}
+```
+
+### Custom 메서드 추가
+https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#repositories
+  
+> 이러한 Repository Interface는 Custom한 메서드를 추가 할 수있음  
+> 어떠한 특정한 키워드를 가지고 있는 Post 목록을 페이징을 해서 찾겠다 라는 메서드 추가  
+> 메서드의 이름을 분석해서 SpringDataJPA가 Query를 만들어줌  
+#### PostRepository에 Custom 메서드 추가
+```java
+import org.springframework.data.domain.Page ;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface PostRepository extends JpaRepository<Post, Long> {
+
+    Page<Post> findByTitleContains(String title, Pageable pageable);
+}
+```
+
+#### 테스트 코드 
+> findAll 과 결과가 같은 것을 확인할 수 있음  
+```java
+page = postRepository.findByTitleContains("spring", PageRequest.of(0, 10));
+
+assertThat(page.getTotalElements()).isEqualTo(1); // 전체 페이지 개수
+assertThat(page.getNumber()).isEqualTo(0); // 현재 페이지 넘버
+assertThat(page.getSize()).isEqualTo(10); // 요청했던 사이즈
+assertThat(page.getNumberOfElements()).isEqualTo(1); // 현재 페이지에 들어올 수있는 개수
+```
+
+### 또 다른 Custom 메서드 추가
+> 좀 더 다양한 Custom 메서드를 추가 할 수 있음  
+```java
+public interface PostRepository extends JpaRepository<Post, Long> {
+
+    long countByTitleContains(String title);
+}
+```
+
+#### 테스트 코드
+```java
+// when - spring을 가지고 있는 개수를 모두 센다
+long spring = postRepository.countByTitleContains("spring");
+// then
+assertThat(spring).isEqualTo(1); // 개수는 1이다
+```
+
+스프링 데이터 Common: Repository 인터페이스 정의하기
+==================================================
+
+## Repository 인터페이스로 공개할 메소드를 직접 일일히 정의하고 싶다면
+> JpaRepository 에서 들어오는 기능들이 싫고 직접 정의하고 싶다면 두가지 방법이 있음  
+
+### 특정 리포지토리 당 @RepositoryDefinition
+> 내가 사용할 기능을 내가 직접 메서드를 정의  
+> 메서드에 해당하는 기능을 스프링 데이터 JPA가 구현할 수 있는 것이라면 구현해서 기본으로 제공해줌  
+```java
+@RepositoryDefinition(domainClass = Comment.class, idClass = Long.class)
+public interface CommentRepository {
+    Comment save(Comment comment);
+    List<Comment> findAll();
+}
+```
+
+### 공통 인터페이스 정의 @NoRepositoryBean
+```java
+@NoRepositoryBean
+public interface MyRepository<T, ID extends Serializable> extends Repository<T, ID> {
+    <E extends T> E save(E entity);
+    List<T> findAll();
+    long count();
+}
+```
+
+#### 정의한 공통 인터페이스를 상속받아서 사용
+```java
+public interface CommentRepository extends MyRepository<Comment, Long>{
+}
+```
+
+### 테스트 실습
+```java
+@RunWith(SpringRunner.class)
+@DataJpaTest
+public class CommentRepositoryTest {
+
+    @Autowired
+    CommentRepository commentRepository;
+
+    @Test
+    public void crud() {
+        Comment comment = new Comment();
+        comment.setComment("Hello Comment");
+        commentRepository.save(comment);
+
+        List<Comment> all = commentRepository.findAll();
+        assertThat(all.size()).isEqualTo(1);
+
+        long count = commentRepository.count();
+        assertThat(count).isEqualTo(1);
+    }
+}
+```
+
+
+# 스프링 데이터 JPA: JPA Repository
+> @EnableJpaRepositories 애노테이션을 사용해야 JpaRepository 인터페이스를 상속받은  
+> Repository 인터페이스 타입의 Proxy 빈들을 등록 해준다  
+## @EnableJpaRepositories
+> 스프링 부트 사용할 때는 사용하지 않아도 자동 설정 됨  
+> 스프링 부트 사용하지 않을 때는 @Configuration과 같이 사용  
+
+### 설정 옵션
+- EntityManager
+- transactionManager
+- basePackages: package scan을 시작할 base package  
+  기본적으로는 @EnableJpaRepositories 애노테이션을 사용한 위치부터 찾기 시작함  
+  best Practice는 항상 기본 Package에 위치  
+ 
+## @Repository 애노테이션
+> 안붙여도 된다 이미 붙어 있다 또 붙인다고 별일이 생기는건 아니지만 중복일 뿐  
+ 
+## 스프링 @Repository
+> SQLExcpetion 또는 JPA 관련 예외를 스프링의 DataAccessException 계층구조 하위클래스중 하나로 변환 해준다  
+> 예외만 보더라도 어떤일이 발생했는지 이해하기 쉽도록 변환해줌  
+> 기본적인 스프링 프레임워크의 기능  
+
+### DataAccessException의 목적
+> SQLExcpetion이 모든 데이터 엑세스 관련된 에러사항을 SQLException 하나로 던져주고  
+> CODE 값을 확인해서 무슨 에러인지 찾아봐야 되는 불편함이 있었음  
+> 그래서 DataAccessException 계층구조를 만들고 SQLExcpetion에 들어있는 CODE 값에 따라서  
+> 굉장히 구체적인 하위 클래스들 중하나로 Mapping을 해서 클래스 이름만 봐도 알 수 있음  
+> Hibernate, JPA 같은 경우는 이미 충분히 예외가 잘 만들어져 있음  
+> JpaSystemException은 DataAccessException으로 변환 된것 임  
