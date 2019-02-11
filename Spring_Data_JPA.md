@@ -291,8 +291,8 @@ public class AppRunner implements ApplicationRunner {
         mongoTemplate.insert(account);
     }
 }
-
 ```
+
 - 결과확인 
 - 몽고 DB 도커 실행 후 
 - mongo 
